@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-18",
+  "scope": "windows-and-ai reference material only",
+  "command_from_avilon_root": "python -B materials/windows-and-ai/checks/check_material.py --synthetic",
+  "exit_code": 0,
+  "snapshot_hashes_verified": 41,
+  "python_sources_parsed_without_import": 7,
+  "synthetic_tests": [
+    {
+      "file": "reference/tests/folder_semantic_cache_test.py",
+      "passed": 5,
+      "failed": 0,
+      "dependencies": "Python standard library; fake NumPy interface; temporary synthetic cache"
+    },
+    {
+      "file": "reference/scripts/ai-components/test_verify.py",
+      "passed": 3,
+      "failed": 0,
+      "dependencies": "Python standard library; temporary synthetic missing/invalid runtime fixtures"
+    }
+  ],
+  "not_run": [
+    "Cargo or Rust compilation",
+    "native shortcut registration or foreground hooks",
+    "personal Clipboard or browser receiver interaction",
+    "installer scripts, downloads or dependency installation",
+    "model inference or CPU/CUDA runtime verification",
+    "release CI or Git commands"
+  ],
+  "interpretation": "Validates preserved snapshots and the independently runnable synthetic fixtures. Does not establish a standalone Rust SDK, native interoperability, inference success or fresh-machine installation support."
+}

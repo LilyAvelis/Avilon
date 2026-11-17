@@ -1,0 +1,61 @@
+{
+  "source_project": "Katran",
+  "source_commit": "14e737348af0f6a188d2eb89f8403e06ec3e1c87",
+  "originals": [
+    {
+      "source": "src/everything.rs",
+      "snapshot": "reference/src/everything.rs",
+      "sha256": "a49773438e122c0ab2abfc00a31164065d5548d2663a840fa17799c0a2d5e29a"
+    },
+    {
+      "source": "src/folder_search_rank.rs",
+      "snapshot": "reference/src/folder_search_rank.rs",
+      "sha256": "975f094f065847a13965ae18f9f089d2a5e41c17eba299f46ff13c7db050fd50"
+    },
+    {
+      "source": "src/pod_metadata.rs",
+      "snapshot": "reference/src/pod_metadata.rs",
+      "sha256": "cc72bc702ac3416dac18cabf417b2dd9b72224dd88efa253dc1dc82903c1a80a"
+    },
+    {
+      "source": "src/pods.rs",
+      "snapshot": "reference/src/pods.rs",
+      "sha256": "10d7db3f4503556066f9dfc6103f59cc44f944958e6ffc5ad4264375ebba27c5"
+    },
+    {
+      "source": "assets/unicode/emoji-test.txt",
+      "snapshot": "reference/assets/unicode/emoji-test.txt",
+      "sha256": "24f0c534e86cf142e2496953e8f0e46a3e702392911eddcd29c6cced85139697"
+    },
+    {
+      "source": "assets/unicode/LICENSE.txt",
+      "snapshot": "reference/assets/unicode/LICENSE.txt",
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96"
+    },
+    {
+      "source": "assets/unicode/SOURCE.md",
+      "snapshot": "reference/assets/unicode/SOURCE.md",
+      "sha256": "766eaa121de87505c69c2f4be8e634fb0b1866bd9a029531feb7aaa064b337af"
+    },
+    {
+      "source": "assets/everything/NOTICE.txt",
+      "snapshot": "reference/assets/everything/NOTICE.txt",
+      "sha256": "87037a836990e81c2902a0c2fa1466bed9e7114d3ae8e36d97b412714a5e15b4"
+    },
+    {
+      "source": "assets/everything/LICENSE",
+      "snapshot": "reference/assets/everything/LICENSE",
+      "sha256": "238dd2a1ba45db2355d3a43c139f0c0fae597ae63ee04a2bd63eda9e370937d5"
+    },
+    {
+      "source": "LICENSE",
+      "snapshot": "reference/LICENSE",
+      "sha256": "4bc40b62433b428647aa94e52ab2e38a99a1344a974503b9ca5b69176d9a6837"
+    },
+    {
+      "source": "AFIO-LICENSE",
+      "snapshot": "reference/AFIO-LICENSE",
+      "sha256": "4bc40b62433b428647aa94e52ab2e38a99a1344a974503b9ca5b69176d9a6837"
+    }
+  ]
+}

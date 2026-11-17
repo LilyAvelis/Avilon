@@ -1,0 +1,139 @@
+{
+  "origin": "Katran local source; audit checkpoint is recorded separately and does not assert current bytes",
+  "audit_checkpoint": "14e737348af0f6a188d2eb89f8403e06ec3e1c87",
+  "algorithm": "sha256",
+  "files": [
+    {
+      "source": "src/tag_slots.rs",
+      "reference": "reference/src/tag_slots.rs",
+      "sha256": "044dca0cc199ebb7e89f6773cb202d3bfdf11b83076f39739120b563584fb7bd",
+      "bytes": 14906
+    },
+    {
+      "source": "src/tag_service.rs",
+      "reference": "reference/src/tag_service.rs",
+      "sha256": "3abf51fc5d4635d9ac1c9c430b77024aca15e2ff90137768c05e8dba68207f9d",
+      "bytes": 9527
+    },
+    {
+      "source": "src/sorting.rs",
+      "reference": "reference/src/sorting.rs",
+      "sha256": "781f3fd0b9bb28d8ed4102a55b588e47b28617b992d2c8a0617e0a1423fb4b7d",
+      "bytes": 5905
+    },
+    {
+      "source": "src/catalogue_query.rs",
+      "reference": "reference/src/catalogue_query.rs",
+      "sha256": "518f443a8cf5b1e9265b8e71a80d186fd6269622329ca1dfae783639bbabaed1",
+      "bytes": 40532
+    },
+    {
+      "source": "src/catalogue_snapshot.rs",
+      "reference": "reference/src/catalogue_snapshot.rs",
+      "sha256": "e2b031e2da638b04b68f0e451a5dfc25806de5fb46a4c314953cb94063bfb141",
+      "bytes": 3830
+    },
+    {
+      "source": "src/desktop_pins.rs",
+      "reference": "reference/src/desktop_pins.rs",
+      "sha256": "5927a95c4070a1afd79ba6d8e783a31c39b70e80b6e1374ffc4310e630b79d54",
+      "bytes": 5806
+    },
+    {
+      "source": "src/desktop_projection.rs",
+      "reference": "reference/src/desktop_projection.rs",
+      "sha256": "99921114cc7a6134084a5c4d60d5c4e3e60fd46fbbf1305d17e38a75e4580095",
+      "bytes": 13450
+    },
+    {
+      "source": "src/bin/images.rs",
+      "reference": "reference/src/bin/images.rs",
+      "sha256": "76c415be741d9d0723ec967439b7cbb2025c9a0a0b123370d4246a589f1a348a",
+      "bytes": 36490
+    },
+    {
+      "source": "src/bin/api_client.rs",
+      "reference": "reference/src/bin/api_client.rs",
+      "sha256": "fe86d30a53d35a43c51f8bc454a6f9aed997c467f437bfa96203e7b6de5e4303",
+      "bytes": 95440
+    },
+    {
+      "source": "src/bin/tag_material_ui.rs",
+      "reference": "reference/src/bin/tag_material_ui.rs",
+      "sha256": "17560e22743bb69e2b8e0fd77332887a4e04e7b571c921f20d8e2c0959e17926",
+      "bytes": 8674
+    },
+    {
+      "source": "tests/tag_slots.rs",
+      "reference": "reference/tests/tag_slots.rs",
+      "sha256": "3c80595d08fc614975f4480e19be8bb8c8ff994028afd2e6848a043fb057b141",
+      "bytes": 10725
+    },
+    {
+      "source": "tests/tag_slots_api.rs",
+      "reference": "reference/tests/tag_slots_api.rs",
+      "sha256": "29bdd0be6d8ff9c86f657b5ec2cbec024ec280b254d9d104ff055babe83540f3",
+      "bytes": 10462
+    },
+    {
+      "source": "tests/tag_reorder_api.rs",
+      "reference": "reference/tests/tag_reorder_api.rs",
+      "sha256": "16080f4d1ac4e3e849506cdd89f7a3372e70cffb577c9e2027add66eefb1f2a1",
+      "bytes": 4946
+    },
+    {
+      "source": "tests/tag_scoped_migration_api.rs",
+      "reference": "reference/tests/tag_scoped_migration_api.rs",
+      "sha256": "e5e1ddffe3c21a6487331a9c69c85fcfec03b1daed84acb7bdb473fbab5e85fc",
+      "bytes": 6259
+    },
+    {
+      "source": "tests/tag_sort_api.rs",
+      "reference": "reference/tests/tag_sort_api.rs",
+      "sha256": "04451d62015ed70b435f848829274c248824a33b302fc8dcb2da0b9c6135a52e",
+      "bytes": 5828
+    },
+    {
+      "source": "tests/tag_sort_desktop.rs",
+      "reference": "reference/tests/tag_sort_desktop.rs",
+      "sha256": "27b632ed987c1d4c025fe5cdb0eb458a970df0ffabf4a545742ab438e54ed8bc",
+      "bytes": 3995
+    },
+    {
+      "source": "tests/sorting_api.rs",
+      "reference": "reference/tests/sorting_api.rs",
+      "sha256": "80536b7b8da72d41dedded388bf8bb203923f093fb469a09e8cfaf0c07f141a5",
+      "bytes": 15270
+    },
+    {
+      "source": "tests/catalogue_snapshot_api.rs",
+      "reference": "reference/tests/catalogue_snapshot_api.rs",
+      "sha256": "3b72ef54d1d272a17b6bbf98c714ef51d2bc757a40605a5b27482995f5a12a1e",
+      "bytes": 6480
+    },
+    {
+      "source": "docs/patch-3.8/TAGS.md",
+      "reference": "reference/docs/patch-3.8/TAGS.md",
+      "sha256": "345f3b5ce54e2c249acb9902a5b0eb924127bc20270d5acc26731c9e09cdb7f5",
+      "bytes": 4256
+    },
+    {
+      "source": "docs/patch-3.8/TAG-SORT.md",
+      "reference": "reference/docs/patch-3.8/TAG-SORT.md",
+      "sha256": "d5ed45e0206deb2148bfcea09e96c99e8d3e04b2957e29423396e0705aae5ca5",
+      "bytes": 2698
+    },
+    {
+      "source": "docs/patch-3.8/TAG-EDITOR-UX.md",
+      "reference": "reference/docs/patch-3.8/TAG-EDITOR-UX.md",
+      "sha256": "b66a1011c2deddeee2e88a6d564e01cdfefd58f324211df699ce0f1253a693f2",
+      "bytes": 6339
+    },
+    {
+      "source": "LICENSE",
+      "reference": "reference/LICENSE",
+      "sha256": "4bc40b62433b428647aa94e52ab2e38a99a1344a974503b9ca5b69176d9a6837",
+      "bytes": 1088
+    }
+  ]
+}

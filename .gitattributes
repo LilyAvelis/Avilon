@@ -1,0 +1,6 @@
+# Material hashes describe exact bytes; preserve them on every checkout.
+# Original Windows CRLF is intentional, not trailing whitespace.
+materials/** -text whitespace=cr-at-eol
+# Preserve the upstream Unicode data verbatim, including its own whitespace.
+materials/search-and-emoji/data/emoji-test.txt -whitespace
+materials/search-and-emoji/reference/assets/unicode/emoji-test.txt -whitespace

@@ -1,7 +1,7 @@
 # Avilon
 
-Reusable Rust desktop components, extracted from Katran and consumed by its thin
-adapters. Internal 0.1 packages, MIT, `publish = false`; no registry release or
+The ready Rust desktop component subset of the Avilon solution warehouse.
+Originally extracted from Katran; consumers adopt it through their own adapters. Internal 0.1 packages, MIT, `publish = false`; no registry release or
 machine-wide installation. Pin a Git revision or use workspace/path dependencies.
 
 ## Design library
@@ -16,10 +16,13 @@ machine-wide installation. Pin a Git revision or use workspace/path dependencies
 
 ```toml
 [dependencies]
-avilon-egui = { path = "../Katran/crates/avilon-egui", features = ["glow"] }
-avilon-media = { path = "../Katran/crates/avilon-media", features = ["egui"] }
-avilon-windows = { path = "../Katran/crates/avilon-windows" }
+avilon-egui = { path = "../Avilon/crates/avilon-egui", features = ["glow"] }
+avilon-media = { path = "../Avilon/crates/avilon-media", features = ["egui"] }
+avilon-windows = { path = "../Avilon/crates/avilon-windows" }
 ```
+
+The example paths assume a sibling Avilon checkout; adapt them to your layout.
+Katran is not automatically reconnected to the canonical warehouse.
 
 Use `theme::PaletteOptions` to resolve semantic colors, `settings_layout` for
 responsive rows, and `optical_gpu::shape` below foreground text. Retain the

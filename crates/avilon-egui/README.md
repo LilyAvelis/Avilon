@@ -55,6 +55,13 @@ styles. For example, `color(Role::Surface, legacy, PaletteOptions { blue: true,
 accent, selection, background and active-glass state. Standard mode retains the
 supplied legacy color except when a selection override is explicitly supplied.
 
+An optional accent also tints the semantic blue surfaces and text consistently;
+`theme::tint` retains the input alpha and brightness while adjusting hue and
+saturation. With no custom accent the previous palette is unchanged. An explicit
+selection color remains independent. Adapted from Katran
+`14e737348af0f6a188d2eb89f8403e06ec3e1c87`; synthetic tests cover transparent
+background, glass alpha, selection overrides and the default palette.
+
 `tabs::Pill` provides measured capsule geometry and host-colored body, rim and
 shine shapes; `tabs::Indicator` interpolates measured target rectangles and
 clears on `None`. The host decides input, active identity, rendering order,

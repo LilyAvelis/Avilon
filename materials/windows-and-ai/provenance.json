@@ -1,0 +1,347 @@
+{
+  "format_version": 1,
+  "kind": "host-dependent reference implementations and synthetic fixtures",
+  "source_project": "Katran",
+  "source_revision": "14e737348af0f6a188d2eb89f8403e06ec3e1c87",
+  "revision_basis": "provided by integration lead; no Git command was run",
+  "captured_date": "2026-11-18",
+  "files": [
+    {
+      "path": "reference/src/overlay.rs",
+      "source_path": "src/overlay.rs",
+      "bytes": 18690,
+      "sha256": "8cbb497c8c6414204a475ed0065d06fb1bc4d8758e62483feb7eef7c5c6b3eba",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/overlay_windows.rs",
+      "source_path": "src/overlay_windows.rs",
+      "bytes": 22625,
+      "sha256": "92f0e6daf715fab6c8073cfc4de80b956c295cda8a7aee1e87acf0143be38829",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/foreground_windows.rs",
+      "source_path": "src/foreground_windows.rs",
+      "bytes": 19024,
+      "sha256": "05f515473f364ad5adafd1bbde942847f7d4012df7a5a6a8b46d7b176b7e1d72",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/overlay_service.rs",
+      "source_path": "src/overlay_service.rs",
+      "bytes": 7511,
+      "sha256": "8c4f75d13f708da474f2990a3cf2f3a616ad37f62de77c1d5ef566abf0ffdb19",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/copy_out.rs",
+      "source_path": "src/copy_out.rs",
+      "bytes": 66113,
+      "sha256": "022aa3097bfff04a67d3f34d1ea1278028f0f854f59bf9d2c5a190302d53d7a1",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/text_clipboard.rs",
+      "source_path": "src/text_clipboard.rs",
+      "bytes": 16193,
+      "sha256": "f29a987e45dc81e4fb7281e95468d36b61c6dce930d0340902074d891836b9fb",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/table_clipboard.rs",
+      "source_path": "src/table_clipboard.rs",
+      "bytes": 17618,
+      "sha256": "d0de159ae16453935f1072a2aab58b5b40b6b2e7e5f9a1cc647c5e374024559a",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/bin/shortcuts_ui.rs",
+      "source_path": "src/bin/shortcuts_ui.rs",
+      "bytes": 23758,
+      "sha256": "aaf33b135fd28b78908fffbacdc78f0e3b65d6673ac47f8fb08645e1fefc67c4",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/bin/tab_hotkey_ui.rs",
+      "source_path": "src/bin/tab_hotkey_ui.rs",
+      "bytes": 8753,
+      "sha256": "fcf41909b1fe419768a1c52808622a27c3f2d66488e6b670b26525e8113267ef",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/ai_components.rs",
+      "source_path": "src/ai_components.rs",
+      "bytes": 12428,
+      "sha256": "0c2642d08c75a26de424076b86cf16bfcc0875270098da94715ab831a909dd90",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/ai_component_bundle.rs",
+      "source_path": "src/ai_component_bundle.rs",
+      "bytes": 4703,
+      "sha256": "5bf1ba15cc1c44f65b4b8cb5cc70af1d56b3cfbc3d3b0b2d3620329105ed7825",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/folder_semantic.rs",
+      "source_path": "src/folder_semantic.rs",
+      "bytes": 20017,
+      "sha256": "63ed2461c7245aa70f79f8606c74ba3ad58d3673509605435a331d012207be77",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/folder_cpu_runtime.rs",
+      "source_path": "src/folder_cpu_runtime.rs",
+      "bytes": 6334,
+      "sha256": "19668a4dd4d1837c5bfddc728b29a255a6d59ef56a2a668217f0b40d197cd1f5",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/folder_gpu_runtime.rs",
+      "source_path": "src/folder_gpu_runtime.rs",
+      "bytes": 3558,
+      "sha256": "c059399318b7fa161b168480558a051ca515c770c656e0d675653e28a54dd3c9",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/src/emoji_ai/runtime.rs",
+      "source_path": "src/emoji_ai/runtime.rs",
+      "bytes": 12143,
+      "sha256": "2fce31b98ceedce64d2075a091b2381e4775e0c548d447c5890605ab66a243d4",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/overlay.rs",
+      "source_path": "tests/overlay.rs",
+      "bytes": 6319,
+      "sha256": "15109dc4fbe28ae5eee19ca5ee2201533d5c11425ff74dcdf985844111b584f3",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/overlay_api.rs",
+      "source_path": "tests/overlay_api.rs",
+      "bytes": 7730,
+      "sha256": "0603924ebf48a1b593edb5ce2c4dd9e0d3e98f020e18aadf7eaa6a366277b843",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/paste_intent_api.rs",
+      "source_path": "tests/paste_intent_api.rs",
+      "bytes": 11586,
+      "sha256": "46a2eff0fcdd660d8eed327b9e33ed627cf6b0df0b4fef84ca44bea6ea1b99cb",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/global_hotkey_keyboard.rs",
+      "source_path": "tests/global_hotkey_keyboard.rs",
+      "bytes": 1570,
+      "sha256": "a40bc5d386243900c1fe38bc3a341b9e0b95e00e33740c335e9274e88e771c5f",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/tab_global_hotkeys_api.rs",
+      "source_path": "tests/tab_global_hotkeys_api.rs",
+      "bytes": 8644,
+      "sha256": "75534be0d5ec75a169dea6fd4161488f4e0945c3a0ad49d06cde7276f51c2281",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/tab_hotkey_windows.rs",
+      "source_path": "tests/tab_hotkey_windows.rs",
+      "bytes": 584,
+      "sha256": "3c259a7ad7e61e5c54e3a3656843895e011dbacac9b95db690fe13c8c55268f4",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/ai_components_api.rs",
+      "source_path": "tests/ai_components_api.rs",
+      "bytes": 3940,
+      "sha256": "5d12460ffc6d11a229072fc81d51520d68a101ac57a49faaeddf4615403e667a",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/folder_semantic_api.rs",
+      "source_path": "tests/folder_semantic_api.rs",
+      "bytes": 8595,
+      "sha256": "addfff27da7a6d1726232d1a536c9882bd5b59258b221ce6724662385da8ca96",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/tests/folder_semantic_cache_test.py",
+      "source_path": "tests/folder_semantic_cache_test.py",
+      "bytes": 7276,
+      "sha256": "3d94937c5ed501cf67745bb4f4e197d8ace98516fa5bd3317a509be2a7e5dfdb",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/ai-components/terminal.ps1",
+      "source_path": "scripts/ai-components/terminal.ps1",
+      "bytes": 7615,
+      "sha256": "57a0614df57c7925fdefde0d7e292e5346e2b8b2806ff8752b62aacd9d127dd8",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/ai-components/ensure-python.ps1",
+      "source_path": "scripts/ai-components/ensure-python.ps1",
+      "bytes": 2610,
+      "sha256": "e80584bb8ca71e71c4b69dfb9f07baf55a84d55e5bce4117448c69d97b17fe07",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/ai-components/verify.py",
+      "source_path": "scripts/ai-components/verify.py",
+      "bytes": 8776,
+      "sha256": "5bae532ac177f0f93ef95b7401bf08bb4949b1bb8c22fffa85d952e948f030a8",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/ai-components/test_verify.py",
+      "source_path": "scripts/ai-components/test_verify.py",
+      "bytes": 1337,
+      "sha256": "4e3ad3d8fa351450e03e107ade53a0f1dad38e623da2c4876e454b9b1bd778d6",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/ai-components/test-contract.ps1",
+      "source_path": "scripts/ai-components/test-contract.ps1",
+      "bytes": 4058,
+      "sha256": "bbde039dfe9ab93fc172f5713c0e215fba966373e4ea3f646c0f18a64404dc16",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/folder-semantic/worker.py",
+      "source_path": "scripts/folder-semantic/worker.py",
+      "bytes": 12212,
+      "sha256": "c12c3f098076b589dda714d60994bfa73119e972b29a8fe18b1e6a671c5cfd96",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/folder-semantic/setup.ps1",
+      "source_path": "scripts/folder-semantic/setup.ps1",
+      "bytes": 2805,
+      "sha256": "2efbeb28923f763c906e172c9d5b24f695a442f79f01587c606d3127b0c8c505",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/folder-semantic/setup-gpu.ps1",
+      "source_path": "scripts/folder-semantic/setup-gpu.ps1",
+      "bytes": 2164,
+      "sha256": "3b2f6cc45f52623b880619cf6f1842146adb872e4bb111b453aca316888d0cc8",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/install-emoji-ai-model.ps1",
+      "source_path": "scripts/install-emoji-ai-model.ps1",
+      "bytes": 5404,
+      "sha256": "f9b5f0478719d3e2d443843da80726914605d4bf2a9fb69ffc6fee50cec8e1a0",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/create-emoji-ai-runtime-manifest.py",
+      "source_path": "scripts/create-emoji-ai-runtime-manifest.py",
+      "bytes": 1988,
+      "sha256": "9e6912f75da2ad597a0514a699cdeeeea5449811674ba7567ff5d8e30ed5bc32",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/emoji-ai/worker.py",
+      "source_path": "scripts/emoji-ai/worker.py",
+      "bytes": 5029,
+      "sha256": "01225d17a375aab447ad5ee958362d1e3169548b07fd31e885721127b343cc14",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/emoji-ai/semantic_search.py",
+      "source_path": "scripts/emoji-ai/semantic_search.py",
+      "bytes": 15691,
+      "sha256": "e72745c6a3b4fa2ff399051b758a4e20414a2bbc3c77f692091201b02886cf77",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "reference/scripts/paste-receiver.html",
+      "source_path": "scripts/paste-receiver.html",
+      "bytes": 3111,
+      "sha256": "47167af0d0a7c5d855bdf7538be32279d9b06f0b7ea9df84e2dffd7fe8e84297",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "LICENSE",
+      "source_path": "LICENSE",
+      "bytes": 1088,
+      "sha256": "4bc40b62433b428647aa94e52ab2e38a99a1344a974503b9ca5b69176d9a6837",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "notices/AFIO-LICENSE",
+      "source_path": "AFIO-LICENSE",
+      "bytes": 1088,
+      "sha256": "4bc40b62433b428647aa94e52ab2e38a99a1344a974503b9ca5b69176d9a6837",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "notices/UNICODE-LICENSE.txt",
+      "source_path": "assets/unicode/LICENSE.txt",
+      "bytes": 1995,
+      "sha256": "e7a93b009565cfce55919a381437ac4db883e9da2126fa28b91d12732bc53d96",
+      "transformation": "none; exact byte snapshot"
+    },
+    {
+      "path": "notices/CLDR-LICENSE",
+      "source_path": "assets/emoji-ai/cldr/LICENSE",
+      "bytes": 2033,
+      "sha256": "220ba0e1c43b99530d2d5bdb892a99dca0989414f51ab695ecd90163eaa1ec3b",
+      "transformation": "none; exact byte snapshot"
+    }
+  ],
+  "omitted_public_resources": [
+    {
+      "source_path": "assets/unicode/emoji-test.txt",
+      "bytes": 640215,
+      "sha256": "24f0c534e86cf142e2496953e8f0e46a3e702392911eddcd29c6cced85139697",
+      "reason": "public dataset is not bundled in this material; supply separately with its notice"
+    },
+    {
+      "source_path": "assets/emoji-ai/cldr/cldr-annotations-full-en.json",
+      "bytes": 440667,
+      "sha256": "6b6b6e0e5f211bc31cf3fa39f385d80dea6cd19ee19bbc6db9071fce3ae5d360",
+      "reason": "public dataset is not bundled in this material; supply separately with its notice"
+    },
+    {
+      "source_path": "assets/emoji-ai/cldr/cldr-annotations-full-ru.json",
+      "bytes": 567710,
+      "sha256": "21120cb44093843460276e571d1671a322f2bd2399cceaab4531d362ad75f62a",
+      "reason": "public dataset is not bundled in this material; supply separately with its notice"
+    },
+    {
+      "source_path": "assets/emoji-ai/cldr/cldr-annotations-derived-full-en.json",
+      "bytes": 785793,
+      "sha256": "7aad034f689cb6553f8d7366bfee8c4ea2818c7776907bc5118aab575223dea3",
+      "reason": "public dataset is not bundled in this material; supply separately with its notice"
+    },
+    {
+      "source_path": "assets/emoji-ai/cldr/cldr-annotations-derived-full-ru.json",
+      "bytes": 944028,
+      "sha256": "8635ba86d806f938a9948b4cf3bc4a6013eeb95d6b54f108519aed37bca97db5",
+      "reason": "public dataset is not bundled in this material; supply separately with its notice"
+    }
+  ],
+  "excluded": [
+    "profiles",
+    "logs",
+    "databases",
+    "runtime environments",
+    "model weights",
+    "generated embeddings or indexes",
+    "fonts",
+    "artwork",
+    "videos",
+    "credentials"
+  ],
+  "local_files": [
+    "README.md",
+    "notices/THIRD-PARTY.md",
+    "checks/check_material.py",
+    "VERIFICATION.json"
+  ]
+}

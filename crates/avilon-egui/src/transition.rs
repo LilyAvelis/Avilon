@@ -25,6 +25,16 @@ pub fn reveal_remaining(
     }
 }
 
+/// Time-reversed cubic reveal: displacement grows gently when dismissing.
+pub fn dismiss_progress(elapsed: Duration, duration: Duration) -> f32 {
+    if duration.is_zero() {
+        return 1.0;
+    }
+    (elapsed.as_secs_f32() / duration.as_secs_f32())
+        .clamp(0.0, 1.0)
+        .powi(3)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -41,14 +51,4 @@ mod tests {
             .collect();
         assert!(values.windows(2).all(|w| w[0] >= w[1]));
     }
-}
-
-/// Time-reversed cubic reveal: displacement grows gently when dismissing.
-pub fn dismiss_progress(elapsed: Duration, duration: Duration) -> f32 {
-    if duration.is_zero() {
-        return 1.0;
-    }
-    (elapsed.as_secs_f32() / duration.as_secs_f32())
-        .clamp(0.0, 1.0)
-        .powi(3)
 }

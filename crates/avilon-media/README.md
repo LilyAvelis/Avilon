@@ -24,3 +24,19 @@ The player uses FFmpeg's Windows D3D11VA decoder and downloads NV12 frames for p
 ## Resume after hiding
 
 The player retains the last texture and the next delivered frame position while inactive. On show it restarts decoding and trims output after the full source loop, preserving the complete cycle instead of looping only a sought tail. The frame offset is bounded by the duration-derived cycle estimate; inaccurate duration metadata can affect resume precision. Decoder startup latency remains, and a full application restart does not retain this in-memory state. No playback runs while hidden.
+
+## Bounded frames and Windows shutdown
+
+The decoder queue retains the first pending frame plus a bounded latest-frame
+slot, allowing the presenter to catch up without accumulating a backlog. On
+Windows the decoder is assigned to a Job Object configured to terminate assigned
+processes when the job closes; shutdown closes the job before waiting on the
+reader. A synthetic Windows test exercises stopping an assigned child, and a
+headless presenter test checks the latest frame. These checks do not establish
+that descendants cannot escape during the window between process spawn and Job
+assignment. Assignment failure stops the direct child and reports an error;
+stronger spawn-time containment remains future work.
+
+Adapted from Katran `14e737348af0f6a188d2eb89f8403e06ec3e1c87`; the host still
+owns FFmpeg discovery, permissions and renderer lifecycle. No additional package
+dependency is needed for the Windows Job Object bindings.
