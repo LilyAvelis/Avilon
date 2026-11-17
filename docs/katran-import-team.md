@@ -5,7 +5,7 @@ using a writable staging copy and baseline-checked final publication.
 
 | Session | Model / effort | Ownership | State |
 | --- | --- | --- | --- |
-| /root | Current lead session | search-and-emoji, root index, provenance verification, integrated gates and canonical publication | Integrated; publishing verified staging |
+| /root | Current lead session | search-and-emoji, root index, provenance verification, integrated gates and canonical publication | Installed and verified in canonical Avilon; checkpoint a65ef61 |
 | /root/fenna | gpt-6.1-terra / high | Existing actions, egui and media packages | Acknowledged, delivered, frozen |
 | /root/nemi | gpt-6.1-terra / high | materials/state-and-view | Acknowledged, delivered, frozen;4 synthetic checks passed |
 | /root/azuros | gpt-6.1-sol / xhigh | Original audit and materials/windows-and-ai | Acknowledged, delivered, frozen;8 offline synthetic checks passed |
