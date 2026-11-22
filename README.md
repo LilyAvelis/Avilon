@@ -22,7 +22,7 @@ Host-owned configuration, assets, windows and persistence remain explicit.
 
 ## GUI
 
-[Темы МИРЫ](gui/mira/README.md) — десять нативных шаблонов, атлас запуска,
+[Темы МИРЫ](gui/mira/README.md) — одиннадцать нативных шаблонов, атлас запуска,
 пресеты egui и две базовые компоновки для рабочих интерфейсов. [Раздел GUI](gui/README.md)
 связывает темы с компонентами и визуальными эффектами Avilon.
 

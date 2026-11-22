@@ -7,6 +7,7 @@ mod herbarium;
 mod kalka;
 mod lozha;
 mod lumen;
+mod nolox;
 mod orbit;
 mod overlays;
 mod pult;
@@ -14,6 +15,7 @@ mod semaphore;
 mod verstka;
 
 pub use atlas::run_atlas;
+pub use nolox::run_nolox;
 
 const SERIF: &str = "editorial";
 

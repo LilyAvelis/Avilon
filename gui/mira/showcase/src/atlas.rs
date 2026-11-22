@@ -17,90 +17,86 @@ const MAT: Color32 = Color32::from_rgb(236, 234, 222);
 struct Style {
     slug: &'static str,
     title: &'static str,
-    grade: &'static str,
-    admission: u8,
+    rating: Option<(&'static str, u8)>,
     cue: &'static str,
     preview: &'static [u8],
 }
 
-const STYLES: [Style; 10] = [
+const STYLES: [Style; 11] = [
+    Style {
+        slug: "nolox",
+        title: "Nolox",
+        rating: None,
+        cue: "Очередь задач со световыми фазами",
+        preview: include_bytes!("../assets/atlas/nolox.jpg"),
+    },
     Style {
         slug: "kalka",
         title: "Калька",
-        grade: "S+",
-        admission: 3,
+        rating: Some(("S+", 3)),
         cue: "Световой стол и сгиб между снимками",
         preview: include_bytes!("../assets/atlas/kalka.jpg"),
     },
     Style {
         slug: "semaphore",
         title: "Семафор",
-        grade: "S+",
-        admission: 3,
+        rating: Some(("S+", 3)),
         cue: "Действия как маршрут",
         preview: include_bytes!("../assets/atlas/semaphore.jpg"),
     },
     Style {
         slug: "azimuth",
         title: "Азимут",
-        grade: "S",
-        admission: 3,
+        rating: Some(("S", 3)),
         cue: "Две оси на кобальтовой сетке",
         preview: include_bytes!("../assets/atlas/azimuth.jpg"),
     },
     Style {
         slug: "orbit",
         title: "Орбита",
-        grade: "S",
-        admission: 3,
+        rating: Some(("S", 3)),
         cue: "Круговое меню у указателя",
         preview: include_bytes!("../assets/atlas/orbit.jpg"),
     },
     Style {
         slug: "lozha",
         title: "Ложа",
-        grade: "S",
-        admission: 2,
+        rating: Some(("S", 2)),
         cue: "Театральный свет и фактура",
         preview: include_bytes!("../assets/atlas/lozha.jpg"),
     },
     Style {
         slug: "pult",
         title: "Пульт",
-        grade: "S",
-        admission: 2,
+        rating: Some(("S", 2)),
         cue: "Приборные ручки и ряд клавиш",
         preview: include_bytes!("../assets/atlas/pult.jpg"),
     },
     Style {
         slug: "verstka",
         title: "Вёрстка",
-        grade: "A",
-        admission: 6,
+        rating: Some(("A", 6)),
         cue: "Редакционная сетка и крупный набор",
         preview: include_bytes!("../assets/atlas/verstka.jpg"),
     },
     Style {
         slug: "lumen",
         title: "Люмен",
-        grade: "B",
-        admission: 5,
+        rating: Some(("B", 5)),
         cue: "Компактный лаунчер с поиском",
         preview: include_bytes!("../assets/atlas/lumen.jpg"),
     },
     Style {
         slug: "herbarium",
         title: "Гербарий",
-        grade: "B",
-        admission: 2,
+        rating: Some(("B", 2)),
         cue: "Холст с карточками и связями",
         preview: include_bytes!("../assets/atlas/herbarium.jpg"),
     },
     Style {
         slug: "contact",
         title: "Контакт",
-        grade: "C",
-        admission: 3,
+        rating: Some(("C", 3)),
         cue: "Кинолента для сравнения кадров",
         preview: include_bytes!("../assets/atlas/contact.jpg"),
     },
@@ -338,14 +334,11 @@ impl Atlas {
                     )
                     .on_hover_cursor(CursorIcon::PointingHand);
                 response.widget_info(|| {
-                    WidgetInfo::labeled(
-                        WidgetType::Button,
-                        true,
-                        format!(
-                            "Открыть «{}». Тир {}, допуск {} из 6",
-                            style.title, style.grade, style.admission
-                        ),
-                    )
+                    let mut label = format!("Открыть «{}»", style.title);
+                    if let Some((grade, admission)) = style.rating {
+                        label.push_str(&format!(". Тир {grade}, допуск {admission} из 6"));
+                    }
+                    WidgetInfo::labeled(WidgetType::Button, true, label)
                 });
                 if response.has_focus() && !moved {
                     self.selected = Some(index);
@@ -383,7 +376,10 @@ fn matching(query: &str) -> Vec<usize> {
         .filter_map(|(index, style)| {
             let haystack = normalize(&format!(
                 "{} {} {} {}",
-                style.slug, style.title, style.grade, style.cue
+                style.slug,
+                style.title,
+                style.rating.map_or("", |(grade, _)| grade),
+                style.cue
             ));
             query
                 .split_whitespace()
@@ -439,16 +435,19 @@ fn paint_card(
         serif(23.0),
         INK,
     );
-    let (mark, ink) = grade_ink(style.grade);
-    let mark_rect = Rect::from_center_size(pos2(card.right() - 42.0, title_y), vec2(62.0, 22.0));
-    p.rect_filled(mark_rect, 0, mark);
-    p.text(
-        mark_rect.center(),
-        Align2::CENTER_CENTER,
-        format!("{} · {}/6", style.grade, style.admission),
-        FontId::monospace(11.0),
-        ink,
-    );
+    if let Some((grade, admission)) = style.rating {
+        let (mark, ink) = grade_ink(grade);
+        let mark_rect =
+            Rect::from_center_size(pos2(card.right() - 42.0, title_y), vec2(62.0, 22.0));
+        p.rect_filled(mark_rect, 0, mark);
+        p.text(
+            mark_rect.center(),
+            Align2::CENTER_CENTER,
+            format!("{grade} · {admission}/6"),
+            FontId::monospace(11.0),
+            ink,
+        );
+    }
 
     let cue = p.layout(
         style.cue.to_owned(),
