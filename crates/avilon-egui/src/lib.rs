@@ -1,5 +1,6 @@
 //! Host-styled action rows and shortcut keycaps. No actions are executed here.
 pub mod material;
+pub mod mira;
 #[cfg(feature = "glow")]
 pub mod optical_gpu;
 pub mod optics;

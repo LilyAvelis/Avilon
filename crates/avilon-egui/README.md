@@ -73,3 +73,11 @@ per area; zero intensity suppresses marks, while the host controls ink alpha and
 fill opacity. It intersects the caller's clip rectangle and never owns textures,
 settings, selection, persistence or tag identities. The host must paint it before
 foreground content and is responsible for contrast on its actual background.
+
+## Mira desktop templates
+
+`mira::Theme` applies ten semantic presets to a caller-owned egui subtree.
+`mira::workspace` arranges independent navigation and working content, and
+`mira::launcher` provides a compact shell. The host passes data and state,
+and can install its own fonts. See [GUI / Темы МИРЫ](../../gui/mira/README.md)
+for the complete reference windows and the working settings example.

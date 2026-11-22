@@ -20,6 +20,12 @@ Packages are internal MIT components (`publish = false`), not registry releases.
 Use path/Git dependencies when useful, or adapt a checked source snapshot.
 Host-owned configuration, assets, windows and persistence remain explicit.
 
+## GUI
+
+[Темы МИРЫ](gui/mira/README.md) — десять нативных шаблонов, атлас запуска,
+пресеты egui и две базовые компоновки для рабочих интерфейсов. [Раздел GUI](gui/README.md)
+связывает темы с компонентами и визуальными эффектами Avilon.
+
 ## Material shelves
 
 | Shelf | Ready to reuse | Reference implementations / recipes |
