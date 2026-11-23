@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Луч Spectre · 360°</title>
+<style>
+:root{--paper:#f5f2e9;--ink:#142f30;--teal:#176360;--light:#d6d4c8;--faded:#496360;--accent:#ad422b;--dark:#102e31;--trace:#b64e32;--cyan:#8fd1bf;--gold:#ffcd86;--panel:#fbf9f1;font:15px/1.45 'Segoe UI',Arial,sans-serif;color:var(--ink);background:var(--paper);color-scheme:light}
+*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,select{cursor:pointer}button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible,a:focus-visible{outline:3px solid #bd6543;outline-offset:3px}button{color:inherit}button:disabled{cursor:default;opacity:.38}button,select{border:1px solid var(--light);background:var(--panel);border-radius:5px}button:hover:not(:disabled),select:hover{border-color:var(--teal)}button:active:not(:disabled){transform:translateY(1px)}a{color:var(--teal)}
+main{max-width:1500px;margin:auto;padding:23px clamp(16px,3vw,52px) 26px}.top{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #acb8ad;padding-bottom:11px}.brand{font-weight:700;letter-spacing:.16em;font-size:12px;display:flex;align-items:center;gap:10px}.brand svg{width:27px;height:22px}.tools{display:flex;align-items:center;gap:8px}.export{padding:5px 11px;font-size:12px}.intro{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:19px 0 21px}.intro h1{font:500 clamp(40px,4.3vw,71px)/1 Georgia,'Times New Roman',serif;letter-spacing:-.055em;margin:0}.turn{font-style:italic;color:#59746b;font-size:.7em;margin-left:.14em}.intro p{margin:9px 0 0;color:var(--faded);font-size:15px}.rad{text-align:right;font:13px Consolas,monospace;color:var(--faded);white-space:nowrap}.workspace{display:grid;grid-template-columns:minmax(0,1.63fr) minmax(285px,1fr);gap:15px}.card{border:1px solid var(--light);border-radius:9px;background:var(--panel);min-width:0;overflow:hidden}.field{background:var(--dark);color:#f8f5e7;border-color:var(--dark)}.cardhead{padding:13px 18px 8px;display:flex;align-items:center;justify-content:space-between;gap:9px}.cardhead h2,.signals h2,.story h2{font:500 24px/1.1 Georgia,serif;margin:0;letter-spacing:-.035em}.chip{border-radius:12px;border:1px solid #537777;padding:3px 9px;color:#c9dcd0;font:12px Consolas,monospace;white-space:nowrap}.fieldbody,.polarbody{position:relative;height:clamp(245px,33vh,385px)}canvas{display:block;width:100%;height:100%}.legend{padding:8px 18px 13px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;color:#bfd1c7}.legend span::before{content:'';display:inline-block;width:17px;border-top:3px solid var(--gold);vertical-align:middle;margin-right:5px}.legend .centrelabel::before{display:none}.centrelabel{display:flex;gap:5px;align-items:center;cursor:pointer}.centrelabel input{accent-color:#f7ce88}.polar .cardhead{padding-bottom:7px}.subtxt{color:var(--faded);font:12px Consolas,monospace}.polarfoot{display:flex;align-items:center;justify-content:space-between;gap:7px;padding:9px 18px 14px;font-size:12px;color:var(--faded)}.polarfoot b{color:var(--accent);font:600 18px Consolas,monospace}#allPolars{accent-color:var(--teal)}.controls{display:grid;grid-template-columns:auto minmax(160px,1fr) auto auto;align-items:center;gap:19px;margin:15px 0;background:var(--panel);border:1px solid var(--light);border-radius:8px;padding:10px 13px}.play{background:var(--teal);color:#fff;border-color:var(--teal);height:39px;padding:0 16px;min-width:110px;font-weight:600}.angle{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;font-size:13px}.angle output{min-width:55px;font:14px Consolas,monospace}.angle input{width:100%;accent-color:var(--teal);cursor:pointer}select{padding:6px 8px}.order{display:flex;align-items:center;gap:6px;font-size:13px}.order button{width:29px;height:30px;font-weight:700}.order select{font:13px Consolas,monospace;font-weight:700}.speed{font-size:13px}.bottom{display:grid;grid-template-columns:minmax(0,1.63fr) minmax(285px,1fr);gap:15px}.signals,.story{padding:16px 18px}.sectiontop{display:flex;align-items:center;justify-content:space-between;gap:6px}.signals h2,.story h2{font-size:23px}.signals .subtxt{font:11px 'Segoe UI',sans-serif}.heatwrap{height:134px;margin:12px 0 3px}.signals canvas{cursor:crosshair}.heatlegend{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--faded);justify-content:flex-end}.ramp{height:7px;width:80px;border-radius:3px;background:linear-gradient(to right,#d9eece,#79be9f,#247679,#173f53)}.empty{width:12px;height:8px;background:#e8e6dd;border:1px solid #c3c2b6;margin-left:8px}.story{background:#e5ecdf;border-color:#c6d2c1}.story small{font:12px Consolas,monospace;color:var(--teal);display:block;margin:4px 0 7px}.story p{margin:0 0 10px;font-size:13px;color:#304d46}.jumpbuttons{display:flex;align-items:center;gap:7px}.jumpbuttons button{font-size:12px;padding:6px 10px;border-color:#b5c6b8}.jumpbuttons button[aria-pressed=true]{color:#fff;background:var(--teal)}details{margin:16px 0 4px;color:var(--faded);font-size:13px}summary{cursor:pointer;width:fit-content;font-weight:600}details p{margin:7px 0}details pre{white-space:pre-wrap;font:11px Consolas,monospace;max-width:90ch}footer{color:var(--faded);font-size:11px;margin-top:14px;border-top:1px solid var(--light);padding-top:9px}
+@media(max-width:820px){main{padding:12px}.intro{margin:16px 0}.workspace,.bottom{grid-template-columns:minmax(0,1.3fr) minmax(240px,1fr);gap:8px}.controls{gap:8px}.angle{gap:5px}.speed{display:none}.controls{grid-template-columns:auto minmax(110px,1fr) auto}.signals,.story,.cardhead{padding-left:12px;padding-right:12px}}
+@media(max-width:620px){.workspace,.bottom{grid-template-columns:1fr}.intro{align-items:flex-start}.intro p{font-size:13px}.rad{display:none}.tools{gap:4px}.export{padding:4px 6px;font-size:11px}.brand{font-size:10px}.fieldbody{height:265px}.polarbody{height:220px}.controls{grid-template-columns:1fr auto;row-gap:9px}.angle{grid-column:1 / -1;grid-row:2}.order{justify-self:end}.play{width:fit-content}.intro h1{font-size:44px}.legend{font-size:10px}.bottom{gap:8px}.heatwrap{height:145px}.polarfoot{padding:6px 12px}.controls{margin:9px 0}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important}}
+</style>
+</head>
+<body><main>
+<header class="top"><div class="brand"><svg viewBox="0 0 30 22" aria-hidden="true"><path d="M2 18V4l9 11 9-11v14M24 4v14" fill="none" stroke="currentColor" stroke-width="2.3"/><circle cx="28" cy="4" r="1.4" fill="#b64e32"/></svg>МИРА</div><div class="tools"><button class="export" id="saveSegments">↓ Отрезки CSV</button><button class="export" id="saveCenters">↓ Центры масс CSV</button></div></header>
+<div class="intro"><div><h1>Луч Spectre <span class="turn">360°</span></h1><p>Один оборот через криволинейное замощение. Выбери отрезок и проследи его длину.</p></div><span class="rad">Радиус обзора 12 рёбер<br>Шаг 0,25°</span></div>
+<div class="workspace">
+  <section class="card field"><div class="cardhead"><h2>Поле плиток</h2><span class="chip" id="fieldCount"></span></div><div class="fieldbody"><canvas id="field" aria-label="Замощение Spectre и луч. Нажми, чтобы задать угол" tabindex="0"></canvas></div><div class="legend"><span>Выбранный отрезок</span><label class="centrelabel"><input id="centers" type="checkbox">Центры масс плиток</label></div></section>
+  <section class="card polar"><div class="cardhead"><h2>Полярный след</h2><span class="subtxt" id="ordinal"></span></div><div class="polarbody"><canvas id="polar" aria-label="Длина по углу поворота луча"></canvas></div><div class="polarfoot"><div>Длина <b id="value"></b></div><label><input type="checkbox" id="allPolars"> Все следы</label></div></section>
+</div>
+<nav class="controls" aria-label="Управление лучом"><button id="play" class="play"></button><label class="angle">Угол <input id="angle" type="range" min="0" max="1439" step="1" aria-label="Угол луча"><output id="angleText"></output></label><div class="order"><label for="order">Отрезок</label><button id="prev" aria-label="Предыдущий отрезок">−</button><select id="order"></select><button id="next" aria-label="Следующий отрезок">+</button></div><select id="speed" class="speed" aria-label="Скорость вращения"><option value="6">6 °/с</option><option value="12" selected>12 °/с</option><option value="36">36 °/с</option></select></nav>
+<div class="bottom">
+ <section class="card signals"><div class="sectiontop"><h2>Все отрезки</h2><span class="subtxt">Номер × угол луча</span></div><div class="heatwrap"><canvas id="heat" tabindex="0" aria-label="Карта длин. Нажми на ячейку, чтобы выбрать номер и угол"></canvas></div><div class="heatlegend">Короче <i class="ramp"></i> Длиннее <i class="empty"></i> Отрезка нет</div></section>
+ <section class="card story"><h2>Что происходит при касании</h2><small id="critical"></small><p id="exampleText"></p><div class="jumpbuttons"><button id="before"></button><button id="after"></button></div></section>
+</div>
+<details><summary>Как читать измерения</summary><p>Первый отрезок идёт от источника до первого шва. Каждый следующий лежит между двумя последовательными переходами. Последний остаток до окружности исключён. Единица длины — хорда исходного ребра плитки.</p><p>На полярном графике угол совпадает с направлением луча, а расстояние от центра равно длине выбранного отрезка. Соседние измерения соединены, пока сохранились оба ограничивающих шва. Во вогнутой плитке при касании может измениться и первый выход. Пустая строка на карте означает, что при этом угле луч не успел завершить отрезок этого номера.</p><p>Центр масс вычислен для целой криволинейной плитки при равномерной плотности интегралом Грина. Координаты центров в CSV отсчитываются от источника луча, ось Y направлена вверх. Кнопки ← и → меняют угол, пробел запускает или останавливает оборот.</p><p><a href="https://cs.uwaterloo.ca/~csk/spectre/" target="_blank" rel="noreferrer">Геометрия Spectre и авторская публикация ↗</a></p><details><summary>Лицензия геометрии</summary><pre>__SPECTRE_NOTICE__</pre></details></details>
+<footer>МИРА · Лаборатория геометрии</footer></main>
+<script>
+'use strict';
+const data=/*__SWEEP__*/;
+const id=x=>document.getElementById(x), tau=2*Math.PI, n=data.rows.length;
+let frame=118, order=0, playing=false, accumulator=0, stamp=null, dirty=true;
+const lengths=data.rows.map(row=>row.map((event,i)=>event[0]-(i?row[i-1][0]:0)));
+const maxima=Array.from({length:data.maxOrder},(_,k)=>Math.max(0,...lengths.map(r=>r[k]??0)));
+const maximum=Math.max(...maxima), field=id('field'), polar=id('polar'), heat=id('heat');
+const fmt=(v,d=2)=>v.toLocaleString('ru-RU',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:false});
+const angleFmt=i=>fmt(i*data.step,2)+'°';
+const contour=new Path2D(), p=data.outline; contour.moveTo(...p[0]);
+for(let j=0;j<p.length;j++){
+ const a=p[j], b=p[(j+1)%p.length], x=b[0]-a[0],y=b[1]-a[1], k=data.curvature/3;
+ contour.bezierCurveTo(a[0]+x/3-y*k,a[1]+y/3+x*k,b[0]-x/3+y*k,b[1]-y/3-x*k,b[0],b[1]);
+}
+contour.closePath();
+const colors=['#224e50','#264d4b','#304f4b','#294a50','#285155','#2e5552','#385653','#35504f'];
+const facePaint=i=>colors[(Math.imul(i+41,1031)>>>3)%colors.length];
+function size(canvas){
+ const r=canvas.getBoundingClientRect(), ratio=Math.min(2,window.devicePixelRatio||1);
+ const w=Math.max(1,Math.round(r.width*ratio)), h=Math.max(1,Math.round(r.height*ratio));
+ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+ const ctx=canvas.getContext('2d');ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,r.width,r.height);
+ return {ctx,w:r.width,h:r.height};
+}
+function dot(ctx,x,y,r,shade){ctx.beginPath();ctx.arc(x,y,r,0,tau);ctx.fillStyle=shade;ctx.fill();}
+function strokeLine(ctx,x0,y0,x1,y1,shade,width=1){ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.strokeStyle=shade;ctx.lineWidth=width;ctx.stroke();}
+function label(ctx,text,x,y,shade,align='center',font='11px Consolas, monospace'){
+ ctx.font=font;ctx.fillStyle=shade;ctx.textAlign=align;ctx.textBaseline='middle';ctx.fillText(text,x,y);
+}
+function fieldLayout(w,h){const r=Math.min(h*.442,w*.427);return {x:w*.5,y:h*.505,unit:r/data.radius,r};}
+function paintFace(ctx,i,style,lineWidth,lineColor){
+ const [x,y,c,s]=data.faces[i];ctx.save();ctx.transform(c,s,-s,c,x,y);
+ ctx.fillStyle=style;ctx.fill(contour);if(lineWidth){ctx.strokeStyle=lineColor;ctx.lineWidth=lineWidth;ctx.stroke(contour);}
+ ctx.restore();
+}
+let bg=null,bgKey='';
+function drawMap(){
+ const {ctx,w,h}=size(field), m=fieldLayout(w,h), stateKey=[field.width,field.height,id('centers').checked].join('/');
+ if(stateKey!==bgKey){bgKey=stateKey;bg=document.createElement('canvas');bg.width=field.width;bg.height=field.height;
+  const g=bg.getContext('2d');g.scale(bg.width/w,bg.height/h);g.fillStyle='#102e31';g.fillRect(0,0,w,h);
+  g.save();g.translate(m.x,m.y);g.scale(m.unit,-m.unit);
+  for(let i=0;i<data.faces.length;i++)paintFace(g,i,facePaint(i),.74/m.unit,'#75948a');
+  g.restore();
+  g.beginPath();g.rect(0,0,w,h);g.moveTo(m.x+m.r,m.y);g.arc(m.x,m.y,m.r,0,tau,true);g.fillStyle='rgba(8,29,32,.65)';g.fill('evenodd');
+  g.strokeStyle='rgba(200,221,203,.47)';g.setLineDash([3,5]);g.lineWidth=1;g.beginPath();g.arc(m.x,m.y,m.r,0,tau);g.stroke();g.setLineDash([]);
+ }
+ ctx.drawImage(bg,0,0,w,h);
+ const events=data.rows[frame],active=events[order];const a=frame*tau/n, dx=Math.cos(a),dy=-Math.sin(a);
+ if(active){ctx.save();ctx.beginPath();ctx.arc(m.x,m.y,m.r,0,tau);ctx.clip();ctx.translate(m.x,m.y);ctx.scale(m.unit,-m.unit);paintFace(ctx,active[2],'#736344',1.4/m.unit,'#d3b67a');ctx.restore();}
+ if(id('centers').checked){for(const t of data.faces){const px=m.x+t[4]*m.unit,py=m.y-t[5]*m.unit;const interior=(px-m.x)**2+(py-m.y)**2<=m.r*m.r;dot(ctx,px,py,interior?2.5:1.6,interior?'#e4f5e8':'#768d83');}}
+ strokeLine(ctx,m.x,m.y,m.x+dx*m.r,m.y+dy*m.r,'#a7c8b9',1.3);
+ for(const event of events){const x=m.x+dx*event[0]*m.unit,y=m.y+dy*event[0]*m.unit;dot(ctx,x,y,2.4,'#daf0d7');}
+ if(active){const b=active[0],a0=order?events[order-1][0]:0;
+  strokeLine(ctx,m.x+dx*a0*m.unit,m.y+dy*a0*m.unit,m.x+dx*b*m.unit,m.y+dy*b*m.unit,'#ffcd86',4.2);
+  for(const d of [a0,b]){dot(ctx,m.x+dx*d*m.unit,m.y+dy*d*m.unit,4.4,'#283e39');dot(ctx,m.x+dx*d*m.unit,m.y+dy*d*m.unit,2.8,'#ffcf8c');}
+ }
+ dot(ctx,m.x,m.y,5,'#152f32');dot(ctx,m.x,m.y,3.5,'#f5a783');
+ for(const [deg,x,y] of [['0°',m.x+m.r+8,m.y],['90°',m.x,m.y-m.r-7],['180°',m.x-m.r-14,m.y],['270°',m.x,m.y+m.r+9]])
+  label(ctx,deg,x,y,'#d0ded1',deg==='0°'?'left':'center','10px Consolas,monospace');
+}
+function sameBound(i,j,k){const a=data.rows[i],b=data.rows[j];return a[k]&&b[k]&&a[k][1]===b[k][1]&&(!k||a[k-1][1]===b[k-1][1]);}
+function drawPolar(){
+ const {ctx,w,h}=size(polar), R=Math.min(w*.34,h*.39), X=w*.50,Y=h*.50;
+ const all=id('allPolars').checked, high=Math.max(.5,Math.ceil((all?maximum:maxima[order])*2)/2);
+ for(let j=1;j<=3;j++){let r=R*j/3;ctx.beginPath();ctx.arc(X,Y,r,0,tau);ctx.strokeStyle=j===3?'#a2b3a5':'#d8ddd1';ctx.lineWidth=1;ctx.stroke();}
+ for(let i=0;i<8;i++){let a=i*tau/8;strokeLine(ctx,X,Y,X+R*Math.cos(a),Y-R*Math.sin(a),'#dce0d5',.8);}
+ label(ctx,'0°',X+R+17,Y,'#60746b');label(ctx,'180°',X-R-24,Y,'#60746b');label(ctx,'90°',X,Y-R-12,'#60746b');label(ctx,'270°',X,Y+R+13,'#60746b');
+ label(ctx,fmt(high,1),X+R*.72,Y+R*.72+2,'#52665f','left','10px Consolas,monospace');
+ function series(k,col,line){ctx.beginPath();let last=null;const isolated=[];for(let i=0;i<=n;i++){const t=i%n,r=lengths[t][k];if(r===undefined){last=null;continue;}
+  const a=t*tau/n,x=X+R*r/high*Math.cos(a),y=Y-R*r/high*Math.sin(a);
+  if(last!==null&&sameBound(last,t,k))ctx.lineTo(x,y);else ctx.moveTo(x,y);
+  if(i<n&&!sameBound((t+n-1)%n,t,k)&&!sameBound(t,(t+1)%n,k))isolated.push([x,y]);
+  last=t;}ctx.strokeStyle=col;ctx.lineWidth=line;ctx.stroke();
+  for(const [x,y] of isolated)dot(ctx,x,y,line*.55,col);}
+ if(all)for(let k=0;k<data.maxOrder;k++)if(k!==order)series(k,'rgba(67,122,111,.27)',.75);
+ series(order,'#b54d32',2.1);
+ const a=frame*tau/n;strokeLine(ctx,X,Y,X+R*Math.cos(a),Y-R*Math.sin(a),'rgba(135,79,52,.46)',1);
+ const d=lengths[frame][order];if(d!==undefined){dot(ctx,X+R*d/high*Math.cos(a),Y-R*d/high*Math.sin(a),5,'#fff9e8');dot(ctx,X+R*d/high*Math.cos(a),Y-R*d/high*Math.sin(a),3.4,'#b64e32');}
+ dot(ctx,X,Y,2.4,'#38514a');
+}
+const stops=[[216,237,205],[119,187,159],[45,126,124],[29,72,87]];function heatColor(x){const a=Math.min(.999,Math.sqrt(x/maximum))*(stops.length-1),i=Math.floor(a),t=a-i;return 'rgb('+stops[i].map((k,j)=>Math.round(k+(stops[i+1][j]-k)*t)).join(',')+')';}
+let heatBG=null,heatKey='';function heatLayout(w,h){return {x:29,y:3,w:w-39,h:h-23};}
+function drawHeat(){
+ const {ctx,w,h}=size(heat),g=heatLayout(w,h);const key=heat.width+'/'+heat.height;
+ if(key!==heatKey){heatKey=key;heatBG=document.createElement('canvas');heatBG.width=n;heatBG.height=data.maxOrder;let c=heatBG.getContext('2d');
+ for(let i=0;i<n;i++)for(let k=0;k<data.maxOrder;k++){c.fillStyle=lengths[i][k]===undefined?'#e8e6dc':heatColor(lengths[i][k]);c.fillRect(i,k,1,1);}}
+ ctx.imageSmoothingEnabled=false;ctx.drawImage(heatBG,g.x,g.y,g.w,g.h);
+ for(const k of [0,4,9,14])label(ctx,String(k+1),g.x-7,g.y+(k+.5)*g.h/data.maxOrder,'#50645c','right','10px Consolas,monospace');
+ for(let j=0;j<=4;j++){const x=g.x+j*g.w/4;label(ctx,j*90+'°',x,g.y+g.h+11,'#52685e',j===0?'left':j===4?'right':'center','10px Consolas,monospace');}
+ const rowh=g.h/data.maxOrder;ctx.strokeStyle='#a64c32';ctx.lineWidth=1;ctx.strokeRect(g.x+.5,g.y+order*rowh+.5,g.w-1,Math.max(1,rowh-1));
+ const x=g.x+(frame+.5)*g.w/n;strokeLine(ctx,x,g.y,x,g.y+g.h,'#a2462e',1.4);dot(ctx,x,g.y+(order+.5)*rowh,2.7,'#fff1ca');
+}
+function setPlay(v){playing=v;stamp=null;accumulator=0;id('play').textContent=playing?'Ⅱ  Пауза':'▶  Вращать';id('play').setAttribute('aria-pressed',String(playing));}
+function select(f,k=order){frame=(Math.round(f)%n+n)%n;order=Math.max(0,Math.min(data.maxOrder-1,k));dirty=true;update();}
+function update(){id('angle').value=frame;id('angleText').value=angleFmt(frame);id('angle').setAttribute('aria-valuetext',angleFmt(frame));
+ id('order').value=order;id('ordinal').textContent='Отрезок №'+(order+1);id('fieldCount').textContent='Отрезков: '+data.rows[frame].length;
+ const val=lengths[frame][order];id('value').textContent=val===undefined?'—':fmt(val,3);id('value').title=val===undefined?'Этот отрезок не завершён в заданном радиусе':'В длинах ребра';
+ id('prev').disabled=order===0;id('next').disabled=order===data.maxOrder-1;
+ id('before').setAttribute('aria-pressed',frame===data.example.left&&order===data.example.order-1);
+ id('after').setAttribute('aria-pressed',frame===data.example.right&&order===data.example.order-1);
+}
+function draw(){drawMap();drawPolar();drawHeat();dirty=false;}
+function tick(time){if(playing&&stamp!==null){accumulator+=Math.min(time-stamp,100)*Number(id('speed').value)/(1000*data.step);if(accumulator>=1){const steps=Math.floor(accumulator);accumulator-=steps;select(frame+steps);}}stamp=time;if(dirty)draw();requestAnimationFrame(tick);}
+function manual(f,k=order){setPlay(false);select(f,k);}
+for(let i=0;i<data.maxOrder;i++){const o=document.createElement('option');o.value=i;o.textContent='№ '+(i+1);id('order').append(o);}
+id('play').onclick=()=>setPlay(!playing);id('angle').oninput=e=>manual(Number(e.target.value));id('order').onchange=e=>select(frame,Number(e.target.value));
+id('prev').onclick=()=>select(frame,order-1);id('next').onclick=()=>select(frame,order+1);
+id('centers').onchange=id('allPolars').onchange=()=>{dirty=true;};
+function pos(e,canvas){const r=canvas.getBoundingClientRect();return [e.clientX-r.left,e.clientY-r.top,r.width,r.height];}
+field.onclick=e=>{const [x,y,w,h]=pos(e,field),m=fieldLayout(w,h);manual(Math.atan2(m.y-y,x-m.x)*n/tau);};
+heat.onclick=e=>{const [x,y,w,h]=pos(e,heat),g=heatLayout(w,h);if(x>=g.x&&x<=g.x+g.w&&y>=g.y&&y<g.y+g.h)manual(Math.min(n-1,Math.floor((x-g.x)*n/g.w)),Math.floor((y-g.y)*data.maxOrder/g.h));};
+document.addEventListener('keydown',e=>{if(['SELECT','INPUT','BUTTON','SUMMARY','A'].includes(document.activeElement?.tagName))return;
+ if(e.code==='Space'){e.preventDefault();setPlay(!playing);}if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();manual(frame+(e.key==='ArrowLeft'?-1:1));}});
+const ex=data.example;id('critical').textContent='Угол касания '+fmt(ex.critical,4)+'°';
+id('exampleText').textContent='Два пересечения одного шва исчезают. Луч пересекает границы '+data.rows[ex.right].length+' раз вместо '+data.rows[ex.left].length+'. Под №'+ex.order+' теперь другой участок. Его длина меняется с '+fmt(ex.before,3)+' до '+fmt(ex.after,3)+'. Первый выход смещается с '+fmt(ex.firstBefore,3)+' до '+fmt(ex.firstAfter,3)+'.';
+for(const [button,f] of [['before',ex.left],['after',ex.right]]){id(button).textContent=(button==='before'?'До · ':'После · ')+angleFmt(f);id(button).onclick=()=>manual(f,ex.order-1);}
+function download(name,lines){const url=URL.createObjectURL(new Blob([lines.join('\n')+'\n'],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+id('saveSegments').onclick=()=>{const rows=['angle_deg,order,start,end,length,tile_id,end_edge_id'];data.rows.forEach((r,i)=>r.forEach((v,k)=>rows.push([i*data.step,k+1,k?r[k-1][0]:0,v[0],lengths[i][k],v[2],v[1]].join(','))));download('spectre-segments.csv',rows);};
+id('saveCenters').onclick=()=>download('spectre-centroids.csv',['tile_id,a,b,c,d,turn_30deg,centroid_x_from_origin,centroid_y_from_origin,area',...data.faces.map((v,i)=>[i,...v.slice(6),v[4],v[5],data.area].join(','))]);
+new ResizeObserver(()=>{dirty=true;}).observe(document.querySelector('.workspace'));window.addEventListener('resize',()=>{dirty=true;});
+setPlay(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);select(frame,0);draw();document.documentElement.dataset.sweepReady='true';requestAnimationFrame(tick);
+</script></body></html>

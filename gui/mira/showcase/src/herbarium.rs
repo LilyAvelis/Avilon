@@ -580,16 +580,14 @@ mod tests {
         let board = Rect::from_min_size(Pos2::ZERO, vec2(740.0, 520.0));
         let mut app = App::new(&ctx, crate::Edition::Herbarium);
         let run = |app: &mut App, events| {
-            ctx.run_ui(
+            let _ = ctx.run_ui(
                 egui::RawInput {
                     screen_rect: Some(board),
                     events,
                     ..Default::default()
                 },
                 |ui| draw_board(ui, app, board),
-            )
-            .textures_delta
-            .clear();
+            );
         };
         run(&mut app, Vec::new());
 

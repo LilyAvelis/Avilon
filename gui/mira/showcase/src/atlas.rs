@@ -1,4 +1,4 @@
-use std::process::Command;
+use std::{io, path::PathBuf, process::Command};
 
 use eframe::egui::{
     self, Align, Align2, Color32, CursorIcon, FontFamily, FontId, Key, Painter, Pos2, Rect, Sense,
@@ -7,6 +7,7 @@ use eframe::egui::{
 
 use crate::animation::Animation;
 use crate::graphics::Sheet;
+use crate::infographic::Infographic;
 use crate::{SERIF, consume_key, normalize};
 
 const SHEET: Color32 = Color32::from_rgb(248, 245, 235);
@@ -108,7 +109,28 @@ const STYLES: [Style; 11] = [
 enum AtlasView {
     Styles,
     Graphics,
+    Kinetics,
     Animation,
+}
+
+impl AtlasView {
+    fn restart_value(self) -> &'static str {
+        match self {
+            Self::Styles => "styles",
+            Self::Graphics => "graphics",
+            Self::Kinetics => "kinetics",
+            Self::Animation => "animation",
+        }
+    }
+
+    fn restart_view() -> Self {
+        match std::env::var("MIRA_ATLAS_RESTART_VIEW").as_deref() {
+            Ok("graphics") => Self::Graphics,
+            Ok("kinetics") => Self::Kinetics,
+            Ok("animation") => Self::Animation,
+            _ => Self::Styles,
+        }
+    }
 }
 
 struct Atlas {
@@ -116,9 +138,11 @@ struct Atlas {
     selected: Option<usize>,
     textures: Vec<TextureHandle>,
     error: Option<String>,
+    restart_error: Option<String>,
     view: AtlasView,
     graphics: Sheet,
-    animation: Animation,
+    kinetics: Animation,
+    infographic: Infographic,
 }
 
 impl Atlas {
@@ -149,9 +173,11 @@ impl Atlas {
             selected: Some(0),
             textures,
             error: None,
+            restart_error: None,
             view: AtlasView::Styles,
             graphics: Sheet::new(ctx),
-            animation: Animation::default(),
+            kinetics: Animation::default(),
+            infographic: Infographic::default(),
         }
     }
 
@@ -171,6 +197,23 @@ impl Atlas {
         self.error = launch
             .err()
             .map(|error| format!("Не удалось открыть «{title}» · {error}"));
+    }
+
+    fn restart(&mut self, ctx: &egui::Context) {
+        let result = atlas_executable().and_then(|path| {
+            Command::new(path)
+                .env("MIRA_ATLAS_RESTART_VIEW", self.view.restart_value())
+                .spawn()
+        });
+        match result {
+            Ok(_) => {
+                self.infographic.stop();
+                ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+            }
+            Err(error) => {
+                self.restart_error = Some(format!("Не удалось перезапустить МИРУ · {error}"))
+            }
+        }
     }
 
     fn show(&mut self, ui: &mut egui::Ui) {
@@ -204,12 +247,31 @@ impl Atlas {
             INK,
         );
         let tab_y = top + 92.0;
+        let restart = ui
+            .put(
+                Rect::from_min_size(pos2(right - 209.0, tab_y - 2.0), vec2(209.0, 28.0)),
+                egui::Button::new("Перезапустить МИРУ · Ctrl+R"),
+            )
+            .on_hover_text("Открыть актуальную сборку на той же вкладке");
+        if restart.clicked() || consume_key(ui.ctx(), Key::R, true) > 0 {
+            self.restart(ui.ctx());
+        }
+        if let Some(error) = &self.restart_error {
+            painter.text(
+                pos2(right, tab_y - 10.0),
+                Align2::RIGHT_BOTTOM,
+                error,
+                FontId::proportional(12.0),
+                Color32::from_rgb(146, 56, 47),
+            );
+        }
         painter.hline(left..=right, tab_y + 30.0, Stroke::new(1.0, RULE));
         let mut focus_in_tabs = false;
         for (offset, width, label, target) in [
             (0.0, 79.0, "Стили", AtlasView::Styles),
             (88.0, 94.0, "Графика", AtlasView::Graphics),
-            (191.0, 104.0, "Анимация", AtlasView::Animation),
+            (191.0, 104.0, "Кинетика", AtlasView::Kinetics),
+            (304.0, 104.0, "Анимация", AtlasView::Animation),
         ] {
             let rect = Rect::from_min_size(pos2(left + offset, tab_y), vec2(width, 30.0));
             let response = ui
@@ -220,6 +282,11 @@ impl Atlas {
                 )
                 .on_hover_cursor(CursorIcon::PointingHand);
             if response.clicked() {
+                if target == AtlasView::Animation && self.view != target {
+                    self.infographic.restart(ui.input(|input| input.time));
+                } else if self.view == AtlasView::Animation && target != self.view {
+                    self.infographic.stop();
+                }
                 self.view = target;
                 ui.ctx().request_repaint();
             }
@@ -254,7 +321,8 @@ impl Atlas {
                     ui.set_clip_rect(content);
                     match self.view {
                         AtlasView::Graphics => self.graphics.show_in_atlas(ui, margin),
-                        AtlasView::Animation => self.animation.show(ui, serif(31.0)),
+                        AtlasView::Kinetics => self.kinetics.show(ui, serif(31.0)),
+                        AtlasView::Animation => self.infographic.show(ui, margin),
                         AtlasView::Styles => unreachable!(),
                     }
                 },
@@ -589,7 +657,78 @@ impl eframe::App for Atlas {
     }
 }
 
+fn atlas_executable() -> io::Result<PathBuf> {
+    let current = std::env::current_exe()?;
+    #[cfg(all(windows, not(debug_assertions)))]
+    {
+        let name = current
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("");
+        if name == "mira-atlas.exe" || name.starts_with("mira-atlas-running-") {
+            let published = current.with_file_name("mira-atlas.exe");
+            if published.is_file() {
+                return atlas_snapshot(&published);
+            }
+        }
+    }
+    Ok(current)
+}
+
+#[cfg(all(windows, not(debug_assertions)))]
+fn atlas_snapshot(published: &std::path::Path) -> io::Result<PathBuf> {
+    use std::{fs, time::UNIX_EPOCH};
+
+    // Run a snapshot so Windows leaves the published executable writable between builds.
+    let metadata = published.metadata()?;
+    let stamp = metadata
+        .modified()?
+        .duration_since(UNIX_EPOCH)
+        .map_err(io::Error::other)?;
+    let snapshot = published.with_file_name(format!(
+        "mira-atlas-running-{:x}-{:x}.exe",
+        stamp.as_nanos(),
+        metadata.len()
+    ));
+    if snapshot.is_file() {
+        return Ok(snapshot);
+    }
+
+    let temporary = snapshot.with_extension(format!("{}.tmp", std::process::id()));
+    let write = (|| {
+        if fs::copy(published, &temporary)? != metadata.len()
+            || published.metadata()?.modified()? != metadata.modified()?
+        {
+            return Err(io::Error::other("Сборка МИРЫ ещё обновляется"));
+        }
+        fs::rename(&temporary, &snapshot)
+    })();
+    if let Err(error) = write {
+        let _ = fs::remove_file(&temporary);
+        if !snapshot.is_file() {
+            return Err(error);
+        }
+    }
+    Ok(snapshot)
+}
+
 pub fn run_atlas() -> eframe::Result {
+    #[cfg(all(windows, not(debug_assertions)))]
+    {
+        let current =
+            std::env::current_exe().map_err(|error| eframe::Error::AppCreation(error.into()))?;
+        if current
+            .file_name()
+            .is_some_and(|name| name == "mira-atlas.exe")
+        {
+            let result = atlas_executable().and_then(|path| Command::new(path).spawn());
+            if result.is_ok() {
+                return Ok(());
+            }
+            // The atlas can still start if its installation directory is read-only.
+        }
+    }
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1240.0, 860.0])
@@ -599,13 +738,68 @@ pub fn run_atlas() -> eframe::Result {
     eframe::run_native(
         "Мира · Атлас интерфейсов",
         options,
-        Box::new(|cc| Ok(Box::new(Atlas::new(&cc.egui_ctx)))),
+        Box::new(|cc| {
+            let mut atlas = Atlas::new(&cc.egui_ctx);
+            atlas.view = AtlasView::restart_view();
+            Ok(Box::new(atlas))
+        }),
     )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn animation_plays_in_its_own_tab_at_minimum_window_size() {
+        let ctx = egui::Context::default();
+        let mut atlas = Atlas::new(&ctx);
+        let click = pos2(380.0, 106.0);
+        let pointer_button = |pressed| egui::Event::PointerButton {
+            pos: click,
+            button: egui::PointerButton::Primary,
+            pressed,
+            modifiers: egui::Modifiers::NONE,
+        };
+        let mut frame = |seconds, events| {
+            let input = egui::RawInput {
+                time: Some(seconds),
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(700.0, 535.0))),
+                events,
+                ..Default::default()
+            };
+            let mut output = ctx.run_ui(input, |ui| atlas.show(ui));
+            output.textures_delta.clear();
+            for primitive in ctx.tessellate(output.shapes, output.pixels_per_point) {
+                if let egui::epaint::Primitive::Mesh(mesh) = &primitive.primitive
+                    && mesh.texture_id != egui::TextureId::default()
+                    && atlas.view == AtlasView::Animation
+                {
+                    let bounds = mesh.calc_bounds();
+                    assert!(bounds.bottom() < 503.0);
+                    assert!(bounds.top() > 123.0);
+                    return atlas.view;
+                }
+            }
+            assert_ne!(
+                atlas.view,
+                AtlasView::Animation,
+                "clip must paint in the tab"
+            );
+            atlas.view
+        };
+        assert_eq!(frame(0.0, vec![]), AtlasView::Styles);
+        frame(
+            0.1,
+            vec![egui::Event::PointerMoved(click), pointer_button(true)],
+        );
+        assert_eq!(
+            frame(0.2, vec![pointer_button(false)]),
+            AtlasView::Animation
+        );
+        assert_eq!(frame(2.3, vec![]), AtlasView::Animation);
+        assert_eq!(frame(10.0, vec![]), AtlasView::Animation);
+    }
 
     #[test]
     fn a_filtered_style_becomes_the_launch_selection() {

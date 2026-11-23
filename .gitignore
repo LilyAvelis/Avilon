@@ -1,1 +1,14 @@
 /target/
+/experiments/unity-*/Library/
+/experiments/unity-*/Logs/
+/experiments/unity-*/Temp/
+/experiments/unity-*/UserSettings/
+/experiments/unity-water-hdrp/Assets/Shared/
+/experiments/unity-water-hdrp/Assets/Shared.meta
+/experiments/unity-water-hdrp/Assets/MiraHdrpGenerated/
+/experiments/unity-water-hdrp/Assets/MiraHdrpGenerated.meta
+/experiments/unity-water-hdrp/Assets/HDRPDefaultResources/
+/experiments/unity-water-hdrp/Assets/HDRPDefaultResources.meta
+/experiments/infographic/node_modules/
+/experiments/godot-liquid/.godot/
+__pycache__/

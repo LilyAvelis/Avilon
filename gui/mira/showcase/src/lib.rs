@@ -6,6 +6,7 @@ mod azimuth;
 mod contact;
 mod graphics;
 mod herbarium;
+mod infographic;
 mod kalka;
 mod lozha;
 mod lumen;
@@ -680,7 +681,7 @@ mod tests {
             events,
             ..Default::default()
         };
-        ctx.run_ui(input, |ui| app.show(ui)).textures_delta.clear();
+        let _ = ctx.run_ui(input, |ui| app.show(ui));
     }
 
     fn key(key: Key, ctrl: bool) -> egui::Event {

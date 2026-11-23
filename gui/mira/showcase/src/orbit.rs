@@ -514,7 +514,7 @@ mod tests {
             events,
             ..Default::default()
         };
-        ctx.run_ui(input, |ui| app.show(ui)).textures_delta.clear();
+        let _ = ctx.run_ui(input, |ui| app.show(ui));
     }
 
     fn click(ctx: &egui::Context, app: &mut App, pos: Pos2, button: PointerButton) {

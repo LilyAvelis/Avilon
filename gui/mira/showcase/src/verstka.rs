@@ -1,16 +1,16 @@
 use eframe::egui::{
     self, Align2, Color32, CursorIcon, FontFamily, FontId, Painter, Pos2, Rect, Sense, Stroke,
-    UiBuilder, pos2, vec2,
+    UiBuilder, WidgetInfo, WidgetType, pos2, vec2,
 };
 
 use crate::{App, SERIF, WORKS};
 
-const PAPER: Color32 = Color32::from_rgb(246, 242, 232);
-const PANEL: Color32 = Color32::from_rgb(237, 232, 219);
-const INK: Color32 = Color32::from_rgb(34, 38, 36);
-const SECONDARY: Color32 = Color32::from_rgb(94, 93, 81);
-const RULE: Color32 = Color32::from_rgb(202, 195, 178);
-const ACCENT: Color32 = Color32::from_rgb(151, 55, 35);
+pub(super) const PAPER: Color32 = Color32::from_rgb(246, 242, 232);
+pub(super) const PANEL: Color32 = Color32::from_rgb(237, 232, 219);
+pub(super) const INK: Color32 = Color32::from_rgb(34, 38, 36);
+pub(super) const SECONDARY: Color32 = Color32::from_rgb(94, 93, 81);
+pub(super) const RULE: Color32 = Color32::from_rgb(202, 195, 178);
+pub(super) const ACCENT: Color32 = Color32::from_rgb(151, 55, 35);
 const SELECTION: Color32 = Color32::from_rgb(232, 223, 206);
 const HOVER: Color32 = Color32::from_rgb(239, 233, 220);
 
@@ -192,17 +192,7 @@ pub(crate) fn show(ui: &mut egui::Ui, app: &mut App) {
             .on_hover_cursor(CursorIcon::PointingHand);
         let work = &WORKS[index];
         let active = Some(index) == selected;
-        if active {
-            painter.rect_filled(row, 0, SELECTION);
-            painter.rect_filled(
-                Rect::from_min_size(row.min, vec2(2.0, row.height())),
-                0,
-                ACCENT,
-            );
-        } else if response.hovered() {
-            painter.rect_filled(row, 0, HOVER);
-        }
-        rule(&painter, row.left(), row.right(), row.bottom());
+        paint_row(&painter, row, active, response.hovered());
         let thumb_size = (row_height - 8.0).min((rail_width - 170.0).clamp(30.0, 47.0));
         let thumb = Rect::from_min_size(
             pos2(row.left() + 27.0, row.center().y - thumb_size * 0.5),
@@ -276,7 +266,27 @@ pub(crate) fn show(ui: &mut egui::Ui, app: &mut App) {
     }
 }
 
-fn text_button(ui: &mut egui::Ui, painter: &Painter, rect: Rect, label: &str, key: &str) -> bool {
+pub(super) fn paint_row(painter: &Painter, row: Rect, active: bool, highlighted: bool) {
+    if active {
+        painter.rect_filled(row, 0, SELECTION);
+        painter.rect_filled(
+            Rect::from_min_size(row.min, vec2(2.0, row.height())),
+            0,
+            ACCENT,
+        );
+    } else if highlighted {
+        painter.rect_filled(row, 0, HOVER);
+    }
+    rule(painter, row.left(), row.right(), row.bottom());
+}
+
+pub(super) fn text_button(
+    ui: &mut egui::Ui,
+    painter: &Painter,
+    rect: Rect,
+    label: &str,
+    key: &str,
+) -> bool {
     let response = ui
         .interact(
             rect,
@@ -284,6 +294,7 @@ fn text_button(ui: &mut egui::Ui, painter: &Painter, rect: Rect, label: &str, ke
             Sense::click(),
         )
         .on_hover_cursor(CursorIcon::PointingHand);
+    response.widget_info(|| WidgetInfo::labeled(WidgetType::Button, true, label));
     if response.hovered() || response.has_focus() {
         painter.hline(
             rect.left() + 6.0..=rect.right() - 6.0,
@@ -308,7 +319,7 @@ fn text_button(ui: &mut egui::Ui, painter: &Painter, rect: Rect, label: &str, ke
     response.clicked()
 }
 
-fn rule(painter: &Painter, left: f32, right: f32, y: f32) {
+pub(super) fn rule(painter: &Painter, left: f32, right: f32, y: f32) {
     painter.hline(left..=right, y, Stroke::new(1.0, RULE));
 }
 
@@ -322,11 +333,11 @@ fn text(painter: &Painter, pos: Pos2, value: &str, size: f32, color: Color32) {
     );
 }
 
-fn serif(size: f32) -> FontId {
+pub(super) fn serif(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name(SERIF.into()))
 }
 
-fn mono(size: f32) -> FontId {
+pub(super) fn mono(size: f32) -> FontId {
     FontId::monospace(size)
 }
 

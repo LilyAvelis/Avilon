@@ -1,0 +1,11 @@
+/Library/
+/Logs/
+/Temp/
+/UserSettings/
+/obj/
+/*.csproj
+/*.sln
+/Assets/Shared/
+/Assets/Shared.meta
+/Assets/MiraHdrpGenerated/
+/Assets/MiraHdrpGenerated.meta

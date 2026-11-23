@@ -1,5 +1,5 @@
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use eframe::egui::{self, FontId, RichText, Stroke, TextureHandle, Vec2, vec2};
@@ -7,6 +7,9 @@ use eframe::egui::{self, FontId, RichText, Stroke, TextureHandle, Vec2, vec2};
 use crate::graphics::{INK, MUTED, PAPER, RULE};
 
 use super::{complexity_badge, demo_executable};
+
+const LEGACY_WATER_LAB: &str = "target/unity-water-lab-sky/WaterLab.exe";
+const WATER_LAB_RELEASE: &str = "target/water-lab-current.txt";
 
 struct Project {
     title: &'static str,
@@ -16,7 +19,7 @@ struct Project {
     preview: &'static [u8],
 }
 
-const PROJECTS: [Project; 3] = [
+const PROJECTS: [Project; 4] = [
     Project {
         title: "Наклонный сад",
         description: "Наклони поднос и докати шарик до светящейся лунки.",
@@ -37,6 +40,13 @@ const PROJECTS: [Project; 3] = [
         complexity: 4,
         executable: "target/unity-kinetka/DominoRun/DominoRun.exe",
         preview: include_bytes!("../../assets/animation/domino.jpg"),
+    },
+    Project {
+        title: "Лаборатория воды",
+        description: "Брось шарик и сравни волны, преломление и три жидкости.",
+        complexity: 4,
+        executable: LEGACY_WATER_LAB,
+        preview: include_bytes!("../../assets/animation/water-lab.jpg"),
     },
 ];
 
@@ -78,31 +88,28 @@ impl Gallery {
             })
         });
         let project_heading = FontId::new(20.0, heading.family);
-        if ui.available_width() >= 800.0 {
-            ui.columns(PROJECTS.len(), |columns| {
-                for (index, ui) in columns.iter_mut().enumerate() {
-                    show_card(
-                        ui,
-                        &PROJECTS[index],
-                        &previews[index],
-                        &project_heading,
-                        &mut self.errors[index],
-                        true,
-                    );
+        let columns = match ui.available_width() {
+            width if width >= 1050.0 => 4,
+            width if width >= 800.0 => 2,
+            _ => 1,
+        };
+        for first in (0..PROJECTS.len()).step_by(columns) {
+            ui.columns(columns, |row| {
+                for (offset, ui) in row.iter_mut().enumerate() {
+                    let index = first + offset;
+                    if let Some(project) = PROJECTS.get(index) {
+                        show_card(
+                            ui,
+                            project,
+                            &previews[index],
+                            &project_heading,
+                            &mut self.errors[index],
+                            columns > 1,
+                        );
+                    }
                 }
             });
-        } else {
-            for (index, project) in PROJECTS.iter().enumerate() {
-                show_card(
-                    ui,
-                    project,
-                    &previews[index],
-                    &project_heading,
-                    &mut self.errors[index],
-                    false,
-                );
-                ui.add_space(9.0);
-            }
+            ui.add_space(9.0);
         }
     }
 }
@@ -186,9 +193,48 @@ fn show_details(
 }
 
 fn launch(project: &Project) -> io::Result<()> {
-    let path = demo_executable(Path::new(project.executable))?;
+    let path = if project.executable == LEGACY_WATER_LAB {
+        water_lab_executable()?
+    } else {
+        demo_executable(Path::new(project.executable))?
+    };
     Command::new(&path)
         .current_dir(path.parent().expect("executable has a directory"))
         .spawn()
         .map(drop)
+}
+
+fn water_lab_executable() -> io::Result<PathBuf> {
+    let manifest = match demo_executable(Path::new(WATER_LAB_RELEASE)) {
+        Ok(path) => path,
+        Err(err) if err.kind() == io::ErrorKind::NotFound => {
+            return demo_executable(Path::new(LEGACY_WATER_LAB));
+        }
+        Err(err) => return Err(err),
+    };
+    let release = std::fs::read_to_string(&manifest)?;
+    let release = release.trim();
+    if !release.starts_with("water-lab-release-")
+        || !release
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "Неверный путь выпуска лаборатории",
+        ));
+    }
+    let folder = manifest.with_file_name(release);
+    let executable = folder.join("WaterLab.exe");
+    if !executable.is_file()
+        || !folder.join("UnityPlayer.dll").is_file()
+        || !folder.join("WaterLab_Data/globalgamemanagers").is_file()
+        || !folder.join("water-lab-inputs.sha256").is_file()
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::NotFound,
+            "Неполный выпуск лаборатории",
+        ));
+    }
+    Ok(executable)
 }

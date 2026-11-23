@@ -804,7 +804,7 @@ mod tests {
         let mut app = App::new(&ctx, Edition::Pult);
         let mut frame = |events: Vec<Event>| {
             let mut ids = [Id::NULL; 7];
-            ctx.run_ui(
+            let _ = ctx.run_ui(
                 RawInput {
                     screen_rect: Some(window),
                     events,
@@ -822,9 +822,7 @@ mod tests {
                     ];
                     app.show(ui);
                 },
-            )
-            .textures_delta
-            .clear();
+            );
             (ids, app.pult.zoom, app.action_index, app.marked[0])
         };
 

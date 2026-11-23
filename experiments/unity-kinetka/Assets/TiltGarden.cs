@@ -1,20 +1,33 @@
+using System;
 using UnityEngine;
 
 public sealed class TiltGarden : MonoBehaviour
 {
-    public Rigidbody tray;
+    [Serializable]
+    public sealed class Level
+    {
+        public Rigidbody tray;
+        public Transform start;
+        public Transform goal;
+        public Renderer goalRing;
+        public Renderer deck;
+    }
+
+    public Level[] levels;
     public Rigidbody marble;
-    public Transform start;
-    public Transform goal;
-    public Renderer goalRing;
-    public Camera view;
+    public TiltGardenCamera orbit;
+    public TiltGardenAppearance appearance;
+    public TiltGardenWater water;
     public AudioSource sound;
+
+    private const float MarbleRadius = 0.246f;
+    private int levelIndex;
+    private Level Current => levels[levelIndex];
 
     private const float MaxTilt = 12.5f;
     private const float MaxTiltSpeed = 28f;
     private static readonly int Emission = Shader.PropertyToID("_EmissionColor");
     private MaterialPropertyBlock glow;
-    private Vector2 dragOrigin;
     private Vector2 steering;
     private GUIStyle title;
     private GUIStyle body;
@@ -23,6 +36,7 @@ public sealed class TiltGarden : MonoBehaviour
     private float goalTime;
     private float successTime;
     private bool completed;
+    private bool falling;
 
     private void Start()
     {
@@ -30,27 +44,36 @@ public sealed class TiltGarden : MonoBehaviour
         Application.targetFrameRate = 90;
         sound.volume = 0.42f;
         chime = MakeChime();
+        water.Initialize(-2.65f, 9.5f);
+        SelectLevel(0);
+    }
+
+    private void SelectLevel(int index)
+    {
+        levelIndex = index;
+        for (int i = 0; i < levels.Length; i++)
+            levels[i].tray.gameObject.SetActive(i == index);
+
+        appearance.BindDeck(Current.deck);
         Restart();
+        orbit.Frame(Current.tray.position, Current.deck.transform.localScale);
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.R))
             Restart();
-        if (Input.GetMouseButtonDown(0))
-            dragOrigin = Input.mousePosition;
 
-        steering = new Vector2(
+        steering = Vector2.ClampMagnitude(new Vector2(
             (Input.GetKey(KeyCode.RightArrow) ? 1 : 0) - (Input.GetKey(KeyCode.LeftArrow) ? 1 : 0),
-            (Input.GetKey(KeyCode.UpArrow) ? 1 : 0) - (Input.GetKey(KeyCode.DownArrow) ? 1 : 0));
-        if (Input.GetMouseButton(0))
-            steering += ((Vector2)Input.mousePosition - dragOrigin) / (Screen.height * 0.145f);
-        steering = Vector2.ClampMagnitude(steering, 1f);
+            (Input.GetKey(KeyCode.UpArrow) ? 1 : 0) - (Input.GetKey(KeyCode.DownArrow) ? 1 : 0)), 1f);
     }
 
     private void FixedUpdate()
     {
-        Vector3 cameraRight = Vector3.ProjectOnPlane(view.transform.right, Vector3.up).normalized;
+        Level level = Current;
+        Rigidbody tray = level.tray;
+        Vector3 cameraRight = Vector3.ProjectOnPlane(orbit.transform.right, Vector3.up).normalized;
         Vector3 cameraUp = Vector3.Cross(cameraRight, Vector3.up);
         Vector3 down = cameraRight * steering.x + cameraUp * steering.y;
         float slope = Mathf.Tan(MaxTilt * Mathf.Deg2Rad);
@@ -65,7 +88,7 @@ public sealed class TiltGarden : MonoBehaviour
 
         if (completed)
         {
-            Vector3 target = tray.position + turn * goal.localPosition;
+            Vector3 target = tray.position + turn * level.goal.localPosition;
             marble.MovePosition(Vector3.Lerp(marble.position, target, 1f - Mathf.Exp(-12f * Time.fixedDeltaTime)));
             successTime += Time.fixedDeltaTime;
             SetGlow(1.6f + 2.8f * Mathf.Exp(-successTime * 2.8f));
@@ -73,14 +96,16 @@ public sealed class TiltGarden : MonoBehaviour
         }
 
         Vector3 local = Quaternion.Inverse(tray.rotation) * (marble.position - tray.position);
-        if (local.y < -1.6f || Mathf.Abs(local.x) > 5.1f || Mathf.Abs(local.z) > 3.4f)
+        falling = local.y < -0.45f;
+        if (water.Step(marble, MarbleRadius) || marble.position.y < -7f)
         {
             Restart();
             return;
         }
 
-        Vector2 offset = new(local.x - goal.localPosition.x, local.z - goal.localPosition.z);
-        bool inside = offset.sqrMagnitude < 0.52f * 0.52f && Mathf.Abs(local.y - goal.localPosition.y) < 0.28f;
+        Vector3 goalPosition = level.goal.localPosition;
+        Vector2 offset = new(local.x - goalPosition.x, local.z - goalPosition.z);
+        bool inside = offset.sqrMagnitude < 0.52f * 0.52f && Mathf.Abs(local.y - goalPosition.y) < 0.28f;
         goalTime = inside ? goalTime + Time.fixedDeltaTime : 0f;
         SetGlow(0.20f + (inside ? 1.3f : 0.10f * Mathf.Sin(Time.time * 2.3f)));
         if (goalTime < 0.12f)
@@ -96,11 +121,13 @@ public sealed class TiltGarden : MonoBehaviour
     private void Restart()
     {
         completed = false;
+        falling = false;
+        water.ResetWater();
         goalTime = 0f;
         successTime = 0f;
-        tray.rotation = Quaternion.identity;
+        Current.tray.rotation = Quaternion.identity;
         marble.isKinematic = false;
-        marble.position = tray.position + start.localPosition;
+        marble.position = Current.start.position;
         marble.rotation = Quaternion.identity;
         marble.linearVelocity = Vector3.zero;
         marble.angularVelocity = Vector3.zero;
@@ -111,7 +138,7 @@ public sealed class TiltGarden : MonoBehaviour
     private void SetGlow(float value)
     {
         glow.SetColor(Emission, new Color(0.21f, 0.91f, 0.73f) * value);
-        goalRing.SetPropertyBlock(glow);
+        Current.goalRing.SetPropertyBlock(glow);
     }
 
     private void OnGUI()
@@ -130,15 +157,31 @@ public sealed class TiltGarden : MonoBehaviour
         float scale = Mathf.Min(Screen.width / 1280f, Screen.height / 820f);
         Matrix4x4 previous = GUI.matrix;
         GUI.matrix = Matrix4x4.Scale(new Vector3(scale, scale, 1f));
-        GUI.Label(new Rect(46, 33, 685, 82), "Наклонный сад", title);
+        float width = Screen.width / scale;
+        GUI.Label(new Rect(46, 32, 620, 82), "Наклонный сад", title);
+
+        float tabsWidth = 111f * levels.Length;
+        float tabX = width - tabsWidth - 46f;
+        for (int i = 0; i < levels.Length; i++)
+        {
+            bool selected = i == levelIndex;
+            bool pressed = GUI.Toggle(new Rect(tabX + i * 111f, 54, 103, 34),
+                selected, $"Карта {i + 1}", GUI.skin.button);
+            if (pressed && !selected)
+                SelectLevel(i);
+        }
+
+        appearance.Draw(new Rect(width - 504f, 105f, 458f, 46f));
         string text = completed
             ? "Шарик в лунке. Сад успокоился."
-            : "Наклони поднос и докати шарик до светящейся лунки.";
-        GUI.Label(new Rect(53, 116, 620, 62), text, body);
-        if (GUI.Button(new Rect(Screen.width / scale - 161f, 61, 108, 30), "Заново"))
+            : falling
+                ? "Шарик упал. Сейчас он вернётся на старт."
+                : "Наклони поднос и докати шарик до светящейся лунки.";
+        GUI.Label(new Rect(53, 116, 640, 62), text, body);
+        if (GUI.Button(new Rect(width - 154f, Screen.height / scale - 62f, 108, 34), "Заново"))
             Restart();
-        GUI.Label(new Rect(53, Screen.height / scale - 53f, 760, 35),
-            "Удерживай ЛКМ и веди мышь   ·   Стрелки — наклон   ·   R — заново", hint);
+        GUI.Label(new Rect(53, Screen.height / scale - 53f, 1000, 35),
+            "Стрелки — наклон   ·   ПКМ + мышь — поворот   ·   A/D — вбок   ·   V/S — ближе / дальше   ·   R — заново", hint);
         GUI.matrix = previous;
     }
 

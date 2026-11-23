@@ -1,0 +1,146 @@
+#pragma kernel ClearField
+#pragma kernel ScatterDrops
+#pragma kernel AdvanceWaves
+#pragma kernel RestoreField
+
+Texture2D<float2> _CurrentState;
+Texture2D<float2> _RestoreSource;
+SamplerState sampler_RestoreSource;
+RWTexture2D<float2> _NextState;
+RWTexture2D<float2> _OtherState;
+StructuredBuffer<float4> _Drops;
+RWStructuredBuffer<int> _Impulses;
+
+int _FieldSize;
+int _DropCount;
+int _ConsumeImpulses;
+float _Radius;
+float _Spacing;
+float _DeltaTime;
+float _LaplacianFactor;
+float _VelocityRetention;
+float _BoundaryRetention;
+float _RestoreUvScale;
+float _RestoreMip;
+
+static const float ImpactPrecision = 4096.0;
+static const float MinImpactWidthInCells = 0.82;
+
+[numthreads(8, 8, 1)]
+void ClearField(uint3 thread : SV_DispatchThreadID)
+{
+    uint2 id = thread.xy;
+    _NextState[id] = 0.0;
+    _OtherState[id] = 0.0;
+    _Impulses[id.y * _FieldSize + id.x] = 0;
+}
+
+[numthreads(8, 8, 1)]
+void RestoreField(uint3 thread : SV_DispatchThreadID)
+{
+    int2 id = (int2)thread.xy;
+    _Impulses[id.y * _FieldSize + id.x] = 0;
+    float2 fieldPosition = (float2)id * _Spacing - _Radius;
+    if (any(id == 0) || any(id == _FieldSize - 1) || dot(fieldPosition, fieldPosition) >= _Radius * _Radius)
+    {
+        _NextState[id] = 0.0;
+        return;
+    }
+
+    float2 uv = 0.5 + fieldPosition * _RestoreUvScale;
+    _NextState[id] = _RestoreSource.SampleLevel(sampler_RestoreSource, uv, _RestoreMip);
+}
+
+float ImpactWeight(int2 id, float2 center, float width)
+{
+    float2 fieldPosition = (float2)id * _Spacing - _Radius;
+    if (dot(fieldPosition, fieldPosition) >= _Radius * _Radius)
+        return 0.0;
+
+    float2 delta = ((float2)id - center) / width;
+    float d = dot(delta, delta);
+    return d < 4.0 ? (d - 1.0) * exp(-1.7 * d) : 0.0;
+}
+
+[numthreads(64, 1, 1)]
+void ScatterDrops(uint3 thread : SV_DispatchThreadID)
+{
+    if (thread.x >= (uint)_DropCount)
+        return;
+
+    float4 drop = _Drops[thread.x];
+    float2 center = (drop.xy + _Radius) / _Spacing;
+    // Keep the input diameter in metres. Only the subtexel floor shrinks with grid spacing.
+    float width = max(0.5 * drop.z / _Spacing, MinImpactWidthInCells);
+    float support = 2.0 * width;
+    int2 low = max(1, (int2)ceil(center - support));
+    int2 high = min(_FieldSize - 2, (int2)floor(center + support));
+
+    float depression = 0.0;
+    float rim = 0.0;
+    float strongest = 0.0;
+    int remainderAddress = 0;
+    [loop] for (int row = low.y; row <= high.y; row++)
+    [loop] for (int col = low.x; col <= high.x; col++)
+    {
+        float weight = ImpactWeight(int2(col, row), center, width);
+        depression += max(-weight, 0.0);
+        rim += max(weight, 0.0);
+        if (weight > strongest)
+        {
+            strongest = weight;
+            remainderAddress = row * _FieldSize + col;
+        }
+    }
+    if (min(rim, depression) <= 0.00001)
+        return;
+
+    // Distribute exactly as much impulse to the rim as was removed from the center.
+    float rimScale = depression / rim;
+    int residue = 0;
+    [loop] for (int y = low.y; y <= high.y; y++)
+    [loop] for (int x = low.x; x <= high.x; x++)
+    {
+        float weight = ImpactWeight(int2(x, y), center, width);
+        if (weight > 0.0)
+            weight *= rimScale;
+        int quantized = (int)round(weight * drop.w * ImpactPrecision);
+        if (quantized != 0)
+            InterlockedAdd(_Impulses[y * _FieldSize + x], quantized);
+        residue += quantized;
+    }
+    if (residue != 0)
+        InterlockedAdd(_Impulses[remainderAddress], -residue);
+}
+
+[numthreads(8, 8, 1)]
+void AdvanceWaves(uint3 thread : SV_DispatchThreadID)
+{
+    int2 id = (int2)thread.xy;
+    int address = id.y * _FieldSize + id.x;
+    float impulse = 0.0;
+    if (_ConsumeImpulses != 0)
+    {
+        impulse = _Impulses[address] / ImpactPrecision;
+        _Impulses[address] = 0;
+    }
+
+    float2 fieldPosition = (float2)id * _Spacing - _Radius;
+    float distanceSquared = dot(fieldPosition, fieldPosition);
+    if (any(id == 0) || any(id == _FieldSize - 1) || distanceSquared >= _Radius * _Radius)
+    {
+        _NextState[id] = 0.0;
+        return;
+    }
+
+    float2 state = _CurrentState.Load(int3(id, 0));
+    float laplacian = _CurrentState.Load(int3(id + int2(-1, 0), 0)).x
+        + _CurrentState.Load(int3(id + int2(1, 0), 0)).x
+        + _CurrentState.Load(int3(id + int2(0, -1), 0)).x
+        + _CurrentState.Load(int3(id + int2(0, 1), 0)).x - 4.0 * state.x;
+    float edgeDistance = _Radius - sqrt(distanceSquared);
+    float interior = saturate(edgeDistance * (1.0 / 6.0));
+    float retention = _VelocityRetention * lerp(_BoundaryRetention, 1.0, interior);
+    float velocity = (state.y + impulse + _LaplacianFactor * laplacian) * retention;
+    _NextState[id] = float2(state.x + _DeltaTime * velocity, velocity);
+}

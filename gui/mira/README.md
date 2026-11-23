@@ -24,6 +24,19 @@ cargo run --offline --locked -p avilon-mira-showcase --bin mira-settings -- --co
 cargo run --offline --locked -p avilon-mira-showcase --bin mira-atlas -- --style kalka
 ```
 
+## Лаборатория воды и соседние опыты
+
+МИРА хранит работающие проекты с их сценами, шейдерами, параметрами и проверками. Проект служит единицей переиспользования. Когда нужна отдельная механика, начни с готового примера и перенеси нужные точки входа вместе с зависимостями.
+
+| Опыт | Исходники и запуск |
+| --- | --- |
+| Water Laboratory 1.11 | [Основной проект и точки входа](../../experiments/unity-water-lab) и [сборка с HDRP](../../experiments/unity-water-hdrp). Из корня Avilon запусти `./experiments/unity-water-hdrp/publish.ps1`, затем открой «Кинетика → Проекты Unity → Лаборатория воды». |
+| Godot Liquid Lab | [Ранний опыт с жидкостью](../../experiments/godot-liquid). Открой `project.godot` в Godot 4. |
+| Анимация | [Ролики Remotion и воспроизведение озвучки](../../experiments/infographic). Подготовленные кадры и WAV входят в ассеты атласа. |
+| Луч Spectre 360° | [HTML-опыт и генератор](../../experiments/spectre-sweep). Открой **Анимация → HTML**. [Исследование продолжения](../../experiments/spectre-continuation) воспроизводит обход швов по расстоянию. |
+
+Для Water Laboratory нужна Unity **6000.3.29f1** и Windows с Direct3D 12. Владельцем опыта остаётся [Лея Кинетка](https://app.notion.com/p/42049fda329681baa351d1d1559e7bbd). [Хендофф](../../experiments/unity-water-lab/HANDOFF.md) и [патчи](../../experiments/unity-water-lab/CHANGELOG.md) описывают границы модели и историю решений.
+
 ## Анимация и игровые прототипы
 
 В «Объёмной призме» можно менять форму, освещение, цвет и скорость вращения.
@@ -108,6 +121,7 @@ cargo run --locked -p avilon-mira-showcase --example custom_facets
 `Assets`. Для сборок Windows, которые atlas запускает из карточек, используй
 методы `TiltGardenBuild.AssembleAndBuild` и `KinetkaScenes.VerifyAndBuild`
 в `Assets/Editor`. Они записывают сборки в `target` в корне Avilon.
+`KinetkaScenes.VerifyAndBuild` делает контрольные кадры в редакторе. При запуске в batchmode ему нужен графический адаптер, например с `-force-d3d11`.
 Деревья и камни из Kenney Nature Kit идут с [лицензией CC0](../../experiments/unity-kinetka/Assets/Kenney%20Nature%20Kit/License.txt).
 
 Для «Театра света» собери [демо Bevy](../../experiments/bevy-light) из корня Avilon:

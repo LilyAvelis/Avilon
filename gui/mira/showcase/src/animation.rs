@@ -350,7 +350,7 @@ fn launch_theatre() -> std::io::Result<()> {
     Command::new(path).spawn().map(drop)
 }
 
-fn demo_executable(relative: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
+pub(super) fn demo_executable(relative: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
     let current = std::env::current_exe()?;
     current
         .ancestors()
@@ -390,7 +390,7 @@ impl eframe::App for Animation {
     }
 }
 
-fn complexity_badge(ui: &mut egui::Ui, rect: Rect, complexity: usize) {
+pub(super) fn complexity_badge(ui: &mut egui::Ui, rect: Rect, complexity: usize) {
     let info = format!("Сложность реализации · {complexity} из {COMPLEXITY_LEVELS}");
     let response = ui.interact(
         rect,
@@ -888,6 +888,7 @@ mod tests {
             "Наклонный сад",
             "Площадь от рассвета до ночи",
             "Дорожка домино",
+            "Лаборатория воды",
         ] {
             assert!(after.iter().any(|text| text == title), "{title}: {after:?}");
         }
@@ -896,7 +897,7 @@ mod tests {
                 .iter()
                 .filter(|text| text.as_str() == "Запустить ↗")
                 .count(),
-            3
+            4
         );
     }
 

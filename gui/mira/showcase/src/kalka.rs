@@ -660,7 +660,7 @@ mod tests {
         let screen = Rect::from_min_size(Pos2::ZERO, vec2(800.0, 590.0));
         let mut frame = |events: Vec<Event>| {
             let mut ids = [Id::NULL; 3];
-            ctx.run_ui(
+            let _ = ctx.run_ui(
                 RawInput {
                     screen_rect: Some(screen),
                     events,
@@ -674,9 +674,7 @@ mod tests {
                     ];
                     app.show(ui);
                 },
-            )
-            .textures_delta
-            .clear();
+            );
             (ids, app.kalka.crease)
         };
         let (ids, initial_crease) = frame(vec![]);

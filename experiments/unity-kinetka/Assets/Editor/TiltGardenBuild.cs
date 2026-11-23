@@ -71,21 +71,25 @@ public static class TiltGardenBuild
         Background();
         Piece(PrimitiveType.Cube, "Plinth", tray, new Vector3(0, -0.27f, 0),
             new Vector3(9.0f, 0.47f, 5.62f), body);
-        Piece(PrimitiveType.Cube, "Inset", tray, new Vector3(0, -0.116f, 0),
-            new Vector3(8.7f, 0.232f, 5.24f), deck, true);
+        Renderer deckRenderer = Piece(PrimitiveType.Cube, "Inset", tray, new Vector3(0, -0.116f, 0),
+            new Vector3(8.7f, 0.232f, 5.24f), deck, true).GetComponent<Renderer>();
         Piece(PrimitiveType.Cube, "Brass seam", tray, new Vector3(0, -0.284f, 0),
             new Vector3(9.03f, 0.035f, 5.65f), edge);
 
         foreach (int side in new[] { -1, 1 })
         {
-            Piece(PrimitiveType.Cube, "Long rail", tray, new Vector3(0, 0.105f, side * 2.67f),
-                new Vector3(9.0f, 0.27f, 0.19f), rim);
+            if (side < 0)
+            {
+                LongRail(tray, -4.5f, 4.5f, side, rim, rimCap);
+            }
+            else
+            {
+                LongRail(tray, -4.5f, 2.1f, side, rim, rimCap);
+                LongRail(tray, 3.6f, 4.5f, side, rim, rimCap);
+            }
             Piece(PrimitiveType.Cube, "Short rail", tray, new Vector3(side * 4.39f, 0.105f, 0),
                 new Vector3(0.19f, 0.27f, 5.19f), rim);
-            GuardRail(tray, new Vector3(0, 0.42f, side * 2.67f), new Vector3(9.04f, 1.02f, 0.19f));
             GuardRail(tray, new Vector3(side * 4.39f, 0.42f, 0), new Vector3(0.19f, 1.02f, 5.53f));
-            Piece(PrimitiveType.Cube, "Long trim", tray, new Vector3(0, 0.246f, side * 2.67f),
-                new Vector3(9.0f, 0.033f, 0.195f), rimCap);
             Piece(PrimitiveType.Cube, "Short trim", tray, new Vector3(side * 4.39f, 0.246f, 0),
                 new Vector3(0.195f, 0.033f, 5.19f), rimCap);
             foreach (int end in new[] { -1, 1 })
@@ -157,17 +161,34 @@ public static class TiltGardenBuild
         RenderSettings.ambientSkyColor = Hex("#C6DDD0") * 0.63f;
         RenderSettings.ambientEquatorColor = Hex("#8DA9A1") * 0.67f;
         RenderSettings.ambientGroundColor = Hex("#4F6C5F") * 0.55f;
-        Lamp("Late afternoon", Hex("#FFE3B3"), 1.14f, new Vector3(44f, -25f, 0f), LightShadows.Soft);
-        Lamp("Sky fill", Hex("#B4DACF"), 0.30f, new Vector3(34f, 149f, 0f), LightShadows.None);
+        Light sun = Lamp("Late afternoon", Hex("#FFE3B3"), 1.14f, new Vector3(44f, -25f, 0f), LightShadows.Soft);
+        Light fill = Lamp("Sky fill", Hex("#B4DACF"), 0.30f, new Vector3(34f, 149f, 0f), LightShadows.None);
+
+        var second = TiltGardenSecondLevel.Create();
+        second.tray.gameObject.SetActive(false);
 
         var rig = new GameObject("Garden controls");
         var controller = rig.AddComponent<TiltGarden>();
-        controller.tray = rigidTray;
+        controller.levels = new[]
+        {
+            new TiltGarden.Level
+            {
+                tray = rigidTray, start = start, goal = finish, goalRing = ring,
+                deck = deckRenderer
+            },
+            new TiltGarden.Level
+            {
+                tray = second.tray, start = second.start, goal = second.goal, goalRing = second.goalRing,
+                deck = second.deck
+            }
+        };
         controller.marble = rigidMarble;
-        controller.start = start;
-        controller.goal = finish;
-        controller.goalRing = ring;
-        controller.view = camera;
+        controller.orbit = cameraObject.AddComponent<TiltGardenCamera>();
+        controller.appearance = rig.AddComponent<TiltGardenAppearance>();
+        controller.appearance.sun = sun;
+        controller.appearance.fill = fill;
+        controller.appearance.view = camera;
+        controller.water = new GameObject("Garden pond").AddComponent<TiltGardenWater>();
         controller.sound = rig.AddComponent<AudioSource>();
         EditorSceneManager.SaveScene(scene, ScenePath);
     }
@@ -186,13 +207,18 @@ public static class TiltGardenBuild
         EditorUtility.SetDirty(sky);
         RenderSettings.skybox = sky;
 
-        Material shadowInk = MaterialAsset("Soft tray shadow", "Mira/Soft Tray Shadow");
-        var shadow = Piece(PrimitiveType.Quad, "Soft shadow", null, new Vector3(0.25f, -1.83f, 0.14f),
-            new Vector3(10.8f, 7.3f, 1f), shadowInk);
-        shadow.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
-        var renderer = shadow.GetComponent<Renderer>();
-        renderer.shadowCastingMode = ShadowCastingMode.Off;
-        renderer.receiveShadows = false;
+    }
+
+    private static void LongRail(Transform tray, float from, float to, int side, Material rim, Material trim)
+    {
+        float x = (from + to) * 0.5f;
+        float z = side * 2.67f;
+        float length = to - from;
+        Piece(PrimitiveType.Cube, "Long rail", tray, new Vector3(x, 0.105f, z),
+            new Vector3(length, 0.27f, 0.19f), rim);
+        GuardRail(tray, new Vector3(x, 0.42f, z), new Vector3(length, 1.02f, 0.19f));
+        Piece(PrimitiveType.Cube, "Long trim", tray, new Vector3(x, 0.246f, z),
+            new Vector3(length, 0.033f, 0.195f), trim);
     }
 
     private static void GuardRail(Transform tray, Vector3 position, Vector3 size)
@@ -308,7 +334,7 @@ public static class TiltGardenBuild
         return renderer;
     }
 
-    private static void Lamp(string name, Color color, float power, Vector3 euler, LightShadows shadows)
+    private static Light Lamp(string name, Color color, float power, Vector3 euler, LightShadows shadows)
     {
         Light light = new GameObject(name).AddComponent<Light>();
         light.type = LightType.Directional;
@@ -317,5 +343,6 @@ public static class TiltGardenBuild
         light.shadows = shadows;
         light.transform.rotation = Quaternion.Euler(euler);
         light.shadowStrength = 0.78f;
+        return light;
     }
 }

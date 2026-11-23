@@ -113,6 +113,66 @@ pub(super) struct Sheet {
     active_tab: usize,
 }
 
+pub(super) fn section_tabs<T: Copy + Eq + std::hash::Hash + std::fmt::Debug>(
+    ui: &mut egui::Ui,
+    views: &[(T, &str)],
+    current: T,
+    margin: f32,
+    font_size: f32,
+) -> T {
+    let mut selected = current;
+    let width = ui.available_width();
+    let mut x = 0.0;
+    let mut y = 0.0;
+    let mut tabs = Vec::with_capacity(views.len());
+    for &(view, label) in views {
+        let font = FontId::proportional(font_size);
+        let galley = ui.painter().layout_no_wrap(label.to_owned(), font, INK);
+        let tab_width = galley.size().x + 20.0;
+        if x + tab_width > width - 2.0 * margin {
+            x = 0.0;
+            y += 33.0;
+        }
+        tabs.push((view, label, galley, vec2(x, y), tab_width));
+        x += tab_width + 6.0;
+    }
+    let row = ui
+        .allocate_space(vec2(width, y + 33.0))
+        .1
+        .shrink2(vec2(margin, 0.0));
+    ui.painter()
+        .hline(row.x_range(), row.bottom(), Stroke::new(1.0, RULE));
+    for (view, label, galley, offset, tab_width) in tabs {
+        let rect = Rect::from_min_size(row.min + offset, vec2(tab_width, 33.0));
+        let response = ui
+            .interact(rect, ui.make_persistent_id(view), egui::Sense::click())
+            .on_hover_cursor(egui::CursorIcon::PointingHand);
+        let active = current == view;
+        response
+            .widget_info(|| WidgetInfo::selected(WidgetType::SelectableLabel, true, active, label));
+        let accent = Color32::from_rgb(142, 52, 32);
+        let hot = response.hovered() || response.has_focus();
+        if active || hot {
+            ui.painter().hline(
+                rect.x_range(),
+                rect.bottom(),
+                Stroke::new(if active { 2.5 } else { 1.0 }, accent),
+            );
+        }
+        let origin = rect.center() - galley.size() * 0.5;
+        ui.painter().galley_with_override_text_color(
+            origin,
+            galley,
+            if active || hot { accent } else { INK },
+        );
+        if response.clicked() {
+            selected = view;
+            ui.ctx().request_repaint();
+        }
+    }
+    selected
+}
+
 impl Sheet {
     pub(super) fn new(ctx: &egui::Context) -> Self {
         let mut fonts = crate::font_definitions();
@@ -236,56 +296,7 @@ impl Sheet {
             (View::Group(Group::FirstSheet), Group::FirstSheet.title()),
             (View::Tabs, "Вкладки"),
         ];
-        let width = ui.available_width();
-        let mut x = 0.0;
-        let mut y = 0.0;
-        let mut tabs = Vec::with_capacity(views.len());
-        for (view, label) in views {
-            let font = FontId::proportional(font_size);
-            let galley = ui.painter().layout_no_wrap(label.to_owned(), font, INK);
-            let tab_width = galley.size().x + 20.0;
-            if x + tab_width > width - 2.0 * margin {
-                x = 0.0;
-                y += 33.0;
-            }
-            tabs.push((view, label, galley, vec2(x, y), tab_width));
-            x += tab_width + 6.0;
-        }
-        let row = ui
-            .allocate_space(vec2(width, y + 33.0))
-            .1
-            .shrink2(vec2(margin, 0.0));
-        ui.painter()
-            .hline(row.x_range(), row.bottom(), Stroke::new(1.0, RULE));
-        for (view, label, galley, offset, tab_width) in tabs {
-            let rect = Rect::from_min_size(row.min + offset, vec2(tab_width, 33.0));
-            let response = ui
-                .interact(rect, ui.make_persistent_id(view), egui::Sense::click())
-                .on_hover_cursor(egui::CursorIcon::PointingHand);
-            let active = self.view == view;
-            response.widget_info(|| {
-                WidgetInfo::selected(WidgetType::SelectableLabel, true, active, label)
-            });
-            let accent = Color32::from_rgb(142, 52, 32);
-            let hot = response.hovered() || response.has_focus();
-            if active || hot {
-                ui.painter().hline(
-                    rect.x_range(),
-                    rect.bottom(),
-                    Stroke::new(if active { 2.5 } else { 1.0 }, accent),
-                );
-            }
-            let origin = rect.center() - galley.size() * 0.5;
-            ui.painter().galley_with_override_text_color(
-                origin,
-                galley,
-                if active || hot { accent } else { INK },
-            );
-            if response.clicked() {
-                self.view = view;
-                ui.ctx().request_repaint();
-            }
-        }
+        self.view = section_tabs(ui, &views, self.view, margin, font_size);
     }
 
     fn section(&self, ui: &mut egui::Ui, group: Group) {
