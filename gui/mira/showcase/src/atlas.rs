@@ -5,7 +5,9 @@ use eframe::egui::{
     Stroke, StrokeKind, TextureHandle, UiBuilder, WidgetInfo, WidgetType, pos2, vec2,
 };
 
-use crate::{SERIF, consume_key, install_fonts, normalize};
+use crate::animation::Animation;
+use crate::graphics::Sheet;
+use crate::{SERIF, consume_key, normalize};
 
 const SHEET: Color32 = Color32::from_rgb(248, 245, 235);
 const INK: Color32 = Color32::from_rgb(39, 49, 43);
@@ -102,16 +104,25 @@ const STYLES: [Style; 11] = [
     },
 ];
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+enum AtlasView {
+    Styles,
+    Graphics,
+    Animation,
+}
+
 struct Atlas {
     query: String,
     selected: Option<usize>,
     textures: Vec<TextureHandle>,
     error: Option<String>,
+    view: AtlasView,
+    graphics: Sheet,
+    animation: Animation,
 }
 
 impl Atlas {
     fn new(ctx: &egui::Context) -> Self {
-        install_fonts(ctx);
         let mut visuals = egui::Visuals::light();
         visuals.override_text_color = Some(INK);
         visuals.weak_text_color = Some(QUIET);
@@ -138,6 +149,9 @@ impl Atlas {
             selected: Some(0),
             textures,
             error: None,
+            view: AtlasView::Styles,
+            graphics: Sheet::new(ctx),
+            animation: Animation::default(),
         }
     }
 
@@ -149,11 +163,14 @@ impl Atlas {
 
     fn launch(&mut self, index: usize) {
         let style = &STYLES[index];
-        let launch = std::env::current_exe()
-            .and_then(|path| Command::new(path).args(["--style", style.slug]).spawn());
+        self.spawn_window(&["--style", style.slug], style.title);
+    }
+
+    fn spawn_window(&mut self, args: &[&str], title: &str) {
+        let launch = std::env::current_exe().and_then(|path| Command::new(path).args(args).spawn());
         self.error = launch
             .err()
-            .map(|error| format!("Не удалось открыть «{}» · {error}", style.title));
+            .map(|error| format!("Не удалось открыть «{title}» · {error}"));
     }
 
     fn show(&mut self, ui: &mut egui::Ui) {
@@ -165,11 +182,6 @@ impl Atlas {
         let painter = ui.painter_at(window);
         painter.rect_filled(window, 0, SHEET);
 
-        let search_id = egui::Id::new("atlas-style-search");
-        if consume_key(ui.ctx(), Key::F, true) > 0 {
-            ui.memory_mut(|memory| memory.request_focus(search_id));
-        }
-        let enter = consume_key(ui.ctx(), Key::Enter, false) > 0;
         let wide = window.width() >= 920.0;
         painter.text(
             pos2(left - 2.0, top + 53.0),
@@ -187,14 +199,74 @@ impl Atlas {
         painter.text(
             pos2(label_left, top + 53.0),
             Align2::LEFT_CENTER,
-            if wide {
-                "Атлас интерфейсов"
-            } else {
-                "Атлас стилей"
-            },
+            "Атлас интерфейсов",
             serif(if wide { 24.0 } else { 18.0 }),
             INK,
         );
+        let tab_y = top + 92.0;
+        painter.hline(left..=right, tab_y + 30.0, Stroke::new(1.0, RULE));
+        let mut focus_in_tabs = false;
+        for (offset, width, label, target) in [
+            (0.0, 79.0, "Стили", AtlasView::Styles),
+            (88.0, 94.0, "Графика", AtlasView::Graphics),
+            (191.0, 104.0, "Анимация", AtlasView::Animation),
+        ] {
+            let rect = Rect::from_min_size(pos2(left + offset, tab_y), vec2(width, 30.0));
+            let response = ui
+                .interact(
+                    rect,
+                    ui.make_persistent_id(("atlas-view", target)),
+                    Sense::click(),
+                )
+                .on_hover_cursor(CursorIcon::PointingHand);
+            if response.clicked() {
+                self.view = target;
+                ui.ctx().request_repaint();
+            }
+            let active = self.view == target;
+            response.widget_info(|| {
+                WidgetInfo::selected(WidgetType::SelectableLabel, true, active, label)
+            });
+            focus_in_tabs |= response.has_focus();
+            let highlight = active || response.hovered() || response.has_focus();
+            let ink = if highlight { ACCENT } else { QUIET };
+            if highlight {
+                painter.hline(
+                    rect.x_range(),
+                    rect.bottom(),
+                    Stroke::new(if active { 2.5 } else { 1.0 }, ink),
+                );
+            }
+            painter.text(
+                rect.center(),
+                Align2::CENTER_CENTER,
+                label,
+                FontId::proportional(16.0),
+                ink,
+            );
+        }
+        if self.view != AtlasView::Styles {
+            let content =
+                Rect::from_min_max(pos2(window.left(), tab_y + 31.0), window.right_bottom());
+            ui.scope_builder(
+                UiBuilder::new().id_salt(self.view).max_rect(content),
+                |ui| {
+                    ui.set_clip_rect(content);
+                    match self.view {
+                        AtlasView::Graphics => self.graphics.show_in_atlas(ui, margin),
+                        AtlasView::Animation => self.animation.show(ui, serif(31.0)),
+                        AtlasView::Styles => unreachable!(),
+                    }
+                },
+            );
+            return;
+        }
+
+        let search_id = egui::Id::new("atlas-style-search");
+        if consume_key(ui.ctx(), Key::F, true) > 0 {
+            ui.memory_mut(|memory| memory.request_focus(search_id));
+        }
+        let enter = !focus_in_tabs && consume_key(ui.ctx(), Key::Enter, false) > 0;
         let search_width = if wide { 253.0 } else { 204.0 };
         let search = Rect::from_min_size(
             pos2(right - search_width, top + 39.0),
@@ -226,11 +298,10 @@ impl Atlas {
             visible = matching(&self.query);
         }
         self.reconcile_selection(&visible);
-        let gallery_top = top + 120.0;
-        painter.hline(left..=right, top + 91.0, Stroke::new(1.0, RULE));
+        let gallery_top = top + 151.0;
         let count = count_label(visible.len());
         painter.text(
-            pos2(left, top + 106.0),
+            pos2(left, top + 137.0),
             Align2::LEFT_CENTER,
             count,
             FontId::proportional(12.0),
@@ -238,7 +309,7 @@ impl Atlas {
         );
         if let Some(error) = &self.error {
             painter.text(
-                pos2(right, top + 106.0),
+                pos2(right, top + 137.0),
                 Align2::RIGHT_CENTER,
                 error,
                 FontId::proportional(12.0),
@@ -246,7 +317,7 @@ impl Atlas {
             );
         } else if !visible.is_empty() {
             painter.text(
-                pos2(right, top + 106.0),
+                pos2(right, top + 137.0),
                 Align2::RIGHT_CENTER,
                 "Стрелки — выбор  ·  Enter — открыть",
                 FontId::proportional(12.0),

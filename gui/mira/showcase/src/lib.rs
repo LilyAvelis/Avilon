@@ -1,8 +1,10 @@
 use eframe::egui::{self, Color32, FontData, FontDefinitions, FontFamily, Id, Key, RichText};
 
+mod animation;
 mod atlas;
 mod azimuth;
 mod contact;
+mod graphics;
 mod herbarium;
 mod kalka;
 mod lozha;
@@ -14,7 +16,9 @@ mod pult;
 mod semaphore;
 mod verstka;
 
+pub use animation::run_animation;
 pub use atlas::run_atlas;
+pub use graphics::run_graphics;
 pub use nolox::run_nolox;
 
 const SERIF: &str = "editorial";
@@ -584,6 +588,10 @@ impl eframe::App for App {
 }
 
 fn install_fonts(ctx: &egui::Context) {
+    ctx.set_fonts(font_definitions());
+}
+
+fn font_definitions() -> FontDefinitions {
     let mut fonts = FontDefinitions::default();
     let serif = FontFamily::Name(SERIF.into());
     let mut serif_fonts = fonts.families[&FontFamily::Proportional].clone();
@@ -607,7 +615,7 @@ fn install_fonts(ctx: &egui::Context) {
         }
     }
     fonts.families.insert(serif, serif_fonts);
-    ctx.set_fonts(fonts);
+    fonts
 }
 
 pub fn run(edition: Edition) -> eframe::Result {

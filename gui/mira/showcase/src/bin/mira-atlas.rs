@@ -4,14 +4,19 @@ use mira::Edition;
 
 fn main() -> eframe::Result {
     let mut args = std::env::args().skip(1);
-    if args.next().as_deref() == Some("--style") {
-        let style = args.next();
-        if style.as_deref() == Some("nolox") {
-            return mira::run_nolox();
+    match args.next().as_deref() {
+        Some("--animation") => return mira::run_animation(),
+        Some("--graphics") => return mira::run_graphics(),
+        Some("--style") => {
+            let style = args.next();
+            if style.as_deref() == Some("nolox") {
+                return mira::run_nolox();
+            }
+            if let Some(edition) = style.as_deref().and_then(edition) {
+                return mira::run(edition);
+            }
         }
-        if let Some(edition) = style.as_deref().and_then(edition) {
-            return mira::run(edition);
-        }
+        _ => {}
     }
     mira::run_atlas()
 }

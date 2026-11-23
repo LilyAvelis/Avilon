@@ -15,12 +15,38 @@ cargo run --offline --locked -p avilon-mira-showcase --bin mira-settings
 cargo run --offline --locked -p avilon-mira-showcase --bin mira-settings -- --compact
 ```
 
-Атлас открывает одиннадцать интерфейсов из одного окна. Бинарник можно
-собрать в release и перенести отдельно. Все изображения и прототипы встроены.
+Атлас открывает одиннадцать интерфейсов из одного окна. Во вкладке «Графика»
+собраны примеры типографики и вкладок. Во вкладке «Анимация» стрелки листают
+интерактивные опыты. Галерея запускает сцены Bevy и Unity из отдельных сборок.
 Есть и прямой запуск, например:
 
 ```powershell
 cargo run --offline --locked -p avilon-mira-showcase --bin mira-atlas -- --style kalka
+```
+
+## Анимация и игровые прототипы
+
+В «Объёмной призме» можно менять форму, освещение, цвет и скорость вращения.
+Семь форм используют один код проекции и отрисовки граней. В «Живой гравюре»
+штрихи плавно прогибаются от указателя. [Исходник анимаций](showcase/src/animation.rs).
+
+| Наклонный сад | Площадь от рассвета до ночи | Дорожка домино |
+| --- | --- | --- |
+| ![Поднос с шариком](showcase/assets/animation/garden.jpg) | ![Улица вечером](showcase/assets/animation/square.jpg) | ![Цепочка домино](showcase/assets/animation/domino.jpg) |
+| Наклоняй поднос и направь шарик к лунке. | Поверни диск и проследи, как двигаются тени и загораются окна. | Толкни первую плашку и дождись звонка. |
+
+Исходники трёх сцен лежат в [проекте Unity](../../experiments/unity-kinetka).
+Версия редактора указана в [ProjectVersion.txt](../../experiments/unity-kinetka/ProjectSettings/ProjectVersion.txt).
+Открой сцены **Tilt Garden**, **Clock Square** и **Domino Run** из папки
+`Assets`. Для сборок Windows, которые atlas запускает из карточек, используй
+методы `TiltGardenBuild.AssembleAndBuild` и `KinetkaScenes.VerifyAndBuild`
+в `Assets/Editor`. Они записывают сборки в `target` в корне Avilon.
+Деревья и камни из Kenney Nature Kit идут с [лицензией CC0](../../experiments/unity-kinetka/Assets/Kenney%20Nature%20Kit/License.txt).
+
+Для «Театра света» собери [демо Bevy](../../experiments/bevy-light) из корня Avilon:
+
+```powershell
+cargo build --locked --manifest-path experiments/bevy-light/Cargo.toml --target-dir target/bevy-light
 ```
 
 ## Начать новый интерфейс
