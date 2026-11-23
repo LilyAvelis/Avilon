@@ -21,6 +21,9 @@ the crate does not install fonts, alter styles, or perform platform effects.
 Internal 0.1 crate; Rust 2024. Adapted from Katran under the accompanying MIT
 license; Lucide SVGs are supplied by the separately licensed egui-lucide crate.
 
+- [`engraving`](../../gui/mira/README.md#вставить-живую-гравюру) provides a seeded field of strokes, a Gaussian lens and an interactive preview.
+- [`facets`](../../gui/mira/README.md#вставить-свою-форму-в-приложение-egui) provides a rotating preview for built-in or caller-supplied convex forms.
+
 `settings_layout` provides shared spacing tokens, responsive `SettingsRow` and
 `SettingsControl`, and `SettingsSection` with an explicit host-supplied style.
 Rows stack controls below descriptions in narrow windows. The library never

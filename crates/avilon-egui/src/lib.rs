@@ -1,4 +1,6 @@
 //! Host-styled action rows and shortcut keycaps. No actions are executed here.
+pub mod engraving;
+pub mod facets;
 pub mod material;
 pub mod mira;
 #[cfg(feature = "glow")]

@@ -1,3 +1,5 @@
+use avilon_egui::engraving::{Settings as EngravingSettings, View as EngravingView};
+use avilon_egui::facets::{Form, Light, Preset, View};
 use eframe::egui::{
     self, Align2, Color32, FontId, Key, Mesh, Painter, Pos2, Rect, Shape, Stroke, StrokeKind, Vec2,
     WidgetInfo, WidgetType, pos2, vec2,
@@ -105,7 +107,17 @@ impl Animation {
                     egui::Sense::hover(),
                 );
                 if ui.is_rect_visible(album) {
-                    self.show_album(ui, album.shrink2(vec2(30.0, 14.0)), heading.clone());
+                    let mut album_ui = ui.new_child(
+                        egui::UiBuilder::new()
+                            .id_salt("animation-album")
+                            .max_rect(album),
+                    );
+                    album_ui.set_clip_rect(ui.clip_rect().intersect(album));
+                    self.show_album(
+                        &mut album_ui,
+                        album.shrink2(vec2(30.0, 14.0)),
+                        heading.clone(),
+                    );
                 }
 
                 egui::Frame::new()
@@ -130,6 +142,7 @@ impl Animation {
         let adjusting = match EXPERIMENTS[self.index] {
             Experiment::Magnetic => self.magnetic.density_has_focus(ui),
             Experiment::Prism => self.prism.control_has_focus(ui),
+            Experiment::Engraving => self.engraving.control_has_focus(ui),
             _ => false,
         };
         let delta = if adjusting {
@@ -211,7 +224,11 @@ impl Animation {
         );
         let dt = ui.input(|input| input.stable_dt).clamp(0.0, 0.06);
         match experiment {
-            Experiment::Engraving => self.engraving.show(ui, canvas, dt),
+            Experiment::Engraving => {
+                let controls = Rect::from_min_size(canvas.min, vec2(canvas.width(), 34.0));
+                canvas.min.y += self.engraving.controls(ui, controls);
+                self.engraving.show(ui, canvas);
+            }
             Experiment::Moire => self.moire.show(ui, canvas, dt),
             Experiment::Fabric => self.fabric.show(ui, canvas, dt),
             Experiment::Pixel => self.pixel.show(ui, canvas, dt),
@@ -234,24 +251,23 @@ impl Animation {
                     ui,
                     toggle,
                     "prism-spin",
-                    if self.prism.spinning {
+                    if self.prism.view.is_spinning() {
                         "Пауза"
                     } else {
                         "Вращать"
                     },
                 ) {
-                    self.prism.spinning = !self.prism.spinning;
+                    self.prism.view.set_spinning(!self.prism.view.is_spinning());
                     ui.ctx().request_repaint();
                 }
                 if button(ui, reset, "prism-reset", "Исходный вид") {
-                    self.prism.yaw = Prism::YAW;
-                    self.prism.pitch = Prism::PITCH;
+                    self.prism.view.reset_angles();
                     ui.ctx().request_repaint();
                 }
                 let controls = Rect::from_min_size(canvas.min, vec2(canvas.width(), 34.0));
                 self.prism.controls(ui, controls);
                 canvas.min.y += 39.0;
-                self.prism.show(ui, canvas, dt);
+                self.prism.show(ui, canvas);
             }
         }
     }
@@ -457,86 +473,77 @@ fn button(ui: &mut egui::Ui, rect: Rect, id: &str, label: &str) -> bool {
 
 #[derive(Default)]
 struct Engraving {
-    center: Pos2,
-    strength: f32,
+    view: EngravingView,
+    settings: EngravingSettings,
+    controls: [Option<egui::Id>; 4],
 }
 
 impl Engraving {
-    fn show(&mut self, ui: &mut egui::Ui, canvas: Rect, dt: f32) {
-        let response = ui
-            .interact(
-                canvas,
-                ui.make_persistent_id("engraving-canvas"),
-                egui::Sense::hover(),
-            )
-            .on_hover_cursor(egui::CursorIcon::Crosshair);
-        let pointer = response.hover_pos();
-        let follow = 1.0 - (-18.0 * dt).exp();
-        if let Some(pointer) = pointer {
-            self.center = if self.strength < 0.001 {
-                pointer
-            } else {
-                self.center.lerp(pointer, follow)
-            };
-        }
-        let target = if pointer.is_some() { 1.0 } else { 0.0 };
-        self.strength += (target - self.strength) * (1.0 - (-11.0 * dt).exp());
-        if (target - self.strength).abs() < 0.002 {
-            self.strength = target;
-        }
-        if self.strength != target || pointer.is_some_and(|pos| pos.distance(self.center) > 0.15) {
-            ui.ctx().request_repaint_after_secs(1.0 / 60.0);
-        }
+    fn control_has_focus(&self, ui: &egui::Ui) -> bool {
+        ui.memory(|memory| {
+            self.controls
+                .iter()
+                .flatten()
+                .any(|&id| memory.has_focus(id))
+        })
+    }
 
-        let p = ui.painter_at(canvas);
-        let ivory = Color32::from_rgb(248, 244, 230);
-        let charcoal = Color32::from_rgb(37, 38, 31);
-        vertical_gradient(&p, canvas, ivory, Color32::from_rgb(231, 222, 201));
-        let print = canvas.shrink(18.0);
-        let plate = p.with_clip_rect(print);
-        let rows = (print.height() / 7.2).round().clamp(22.0, 100.0) as usize;
-        let columns = (print.width() / 8.0).round().clamp(40.0, 230.0) as usize;
-        let radius_sq = (print.height() * 0.225).powi(2);
-        for row in 0..=rows {
-            let depth = row as f32 / rows as f32;
-            let points = (0..=columns)
-                .map(|column| {
-                    let x = column as f32 / columns as f32;
-                    let envelope = (std::f32::consts::PI * x).sin().max(0.0).powf(1.25);
-                    let wave = (x * 13.0 + depth * 4.0).sin() * 0.092
-                        + (x * 22.0 - depth * 5.0).sin() * 0.030;
-                    let base_y = 0.045 + 0.91 * depth + wave * envelope;
-                    let point = print.min + print.size() * vec2(x, base_y);
-                    let distance = point - self.center;
-                    let pressure = 2.05 * self.strength * (-distance.length_sq() / radius_sq).exp();
-                    point + distance * pressure
-                })
-                .collect();
-            let stroke = if row % 5 == 0 {
-                Stroke::new(1.18, charcoal)
-            } else {
-                Stroke::new(0.66, Color32::from_rgb(105, 101, 86))
-            };
-            plate.add(Shape::line(points, stroke));
-        }
-        p.rect_stroke(
-            print,
-            0,
-            Stroke::new(1.0, Color32::from_rgb(151, 141, 119)),
-            StrokeKind::Inside,
-        );
-        p.rect_stroke(canvas, 0, Stroke::new(1.0, RULE), StrokeKind::Inside);
+    fn controls(&mut self, ui: &mut egui::Ui, rect: Rect) -> f32 {
+        let controls = ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
+            ui.spacing_mut().slider_width = 71.0;
+            ui.horizontal_wrapped(|ui| {
+                ui.label("Сид");
+                self.controls[0] = Some(ui.add(egui::DragValue::new(&mut self.settings.seed)).id);
+                if ui.small_button("Другой рисунок").clicked() {
+                    self.settings.seed = self
+                        .settings
+                        .seed
+                        .wrapping_mul(1_664_525)
+                        .wrapping_add(1_013_904_223);
+                }
+                ui.separator();
+                ui.label("Радиус");
+                self.controls[1] = Some(
+                    ui.add(
+                        egui::Slider::new(&mut self.settings.radius, 0.04..=0.45).fixed_decimals(2),
+                    )
+                    .id,
+                );
+                ui.label("Зум");
+                self.controls[2] = Some(
+                    ui.add(
+                        egui::Slider::new(&mut self.settings.zoom, 0.32..=5.5)
+                            .logarithmic(true)
+                            .fixed_decimals(2)
+                            .suffix("×"),
+                    )
+                    .id,
+                );
+                ui.label("Плотность");
+                self.controls[3] = Some(
+                    ui.add(
+                        egui::Slider::new(&mut self.settings.density, 0.5..=2.0).fixed_decimals(2),
+                    )
+                    .id,
+                );
+                ui.toggle_value(&mut self.settings.live, "Оживить");
+            });
+        });
+        self.view.set_settings(self.settings);
+        controls.response.rect.height().max(30.0) + 6.0
+    }
+
+    fn show(&mut self, ui: &mut egui::Ui, canvas: Rect) {
+        self.view
+            .show_in(ui, canvas, ui.make_persistent_id("engraving-canvas"));
     }
 }
 
 struct Prism {
-    yaw: f32,
-    pitch: f32,
-    spinning: bool,
+    view: View,
     speed: f32,
-    elapsed: f32,
     form: PrismForm,
-    finish: PrismFinish,
+    finish: Light,
     tint: Color32,
     speed_id: Option<egui::Id>,
 }
@@ -575,76 +582,44 @@ impl PrismForm {
         }
     }
 
-    fn profile(self) -> (usize, &'static [(f32, f32)]) {
-        match self {
-            Self::Prism => (
-                6,
-                &[(-1.18, 0.54), (-0.79, 0.94), (0.68, 1.0), (1.10, 0.63)],
-            ),
-            Self::Crystal => (5, &[(-1.30, 0.0), (0.0, 0.99), (1.30, 0.0)]),
-            Self::Seal => (
-                8,
-                &[(-0.40, 0.81), (-0.24, 1.18), (0.24, 1.18), (0.40, 0.81)],
-            ),
-            Self::Trigon => (3, &[(-0.91, 1.03), (0.91, 1.03)]),
-            Self::Lens => (
-                10,
-                &[
-                    (-0.34, 0.38),
-                    (-0.19, 0.91),
-                    (0.0, 1.16),
-                    (0.19, 0.91),
-                    (0.34, 0.38),
-                ],
-            ),
-            Self::Obelisk => (
-                4,
-                &[(-1.21, 0.59), (-0.90, 0.76), (0.67, 0.80), (1.30, 0.0)],
-            ),
-            Self::Shard => unreachable!("the tetrahedron has its own vertices"),
-        }
+    fn geometry(self) -> Form {
+        Form::preset(match self {
+            Self::Prism => Preset::Prism,
+            Self::Shard => Preset::Shard,
+            Self::Crystal => Preset::Crystal,
+            Self::Seal => Preset::Seal,
+            Self::Trigon => Preset::Trigon,
+            Self::Lens => Preset::Lens,
+            Self::Obelisk => Preset::Obelisk,
+        })
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum PrismFinish {
-    Studio,
-    Sweep,
-    Pearl,
-    Neon,
-    Wave,
-}
+const LIGHTS: [Light; 5] = [
+    Light::Studio,
+    Light::Sweep,
+    Light::Pearl,
+    Light::Neon,
+    Light::Wave,
+];
 
-impl PrismFinish {
-    const ALL: [Self; 5] = [
-        Self::Studio,
-        Self::Sweep,
-        Self::Pearl,
-        Self::Neon,
-        Self::Wave,
-    ];
-
-    fn name(self) -> &'static str {
-        match self {
-            Self::Studio => "Студийный",
-            Self::Sweep => "Бегущий блик",
-            Self::Pearl => "Перламутр",
-            Self::Neon => "Неоновые рёбра",
-            Self::Wave => "Волна света",
-        }
+fn light_name(light: Light) -> &'static str {
+    match light {
+        Light::Studio => "Студийный",
+        Light::Sweep => "Бегущий блик",
+        Light::Pearl => "Перламутр",
+        Light::Neon => "Неоновые рёбра",
+        Light::Wave => "Волна света",
     }
 }
 
 impl Default for Prism {
     fn default() -> Self {
         Self {
-            yaw: Self::YAW,
-            pitch: Self::PITCH,
-            spinning: true,
+            view: View::new(Form::preset(Preset::Prism)),
             speed: 1.0,
-            elapsed: 0.0,
             form: PrismForm::Prism,
-            finish: PrismFinish::Studio,
+            finish: Light::Studio,
             tint: Self::DEFAULT_TINT,
             speed_id: None,
         }
@@ -652,9 +627,7 @@ impl Default for Prism {
 }
 
 impl Prism {
-    const YAW: f32 = 0.36;
-    const PITCH: f32 = 0.28;
-    const DEFAULT_TINT: Color32 = Color32::from_rgb(39, 216, 208);
+    const DEFAULT_TINT: Color32 = View::DEFAULT_TINT;
 
     fn control_has_focus(&self, ui: &egui::Ui) -> bool {
         self.speed_id
@@ -663,6 +636,7 @@ impl Prism {
     }
 
     fn controls(&mut self, ui: &mut egui::Ui, rect: Rect) {
+        let previous = self.form;
         ui.scope_builder(egui::UiBuilder::new().max_rect(rect), |ui| {
             ui.horizontal(|ui| {
                 ui.label("Форма");
@@ -678,10 +652,10 @@ impl Prism {
                 ui.label("Свет");
                 egui::ComboBox::from_id_salt("prism-finish")
                     .width(129.0)
-                    .selected_text(self.finish.name())
+                    .selected_text(light_name(self.finish))
                     .show_ui(ui, |ui| {
-                        for finish in PrismFinish::ALL {
-                            ui.selectable_value(&mut self.finish, finish, finish.name());
+                        for finish in LIGHTS {
+                            ui.selectable_value(&mut self.finish, finish, light_name(finish));
                         }
                     });
                 ui.separator();
@@ -710,30 +684,15 @@ impl Prism {
                 );
             });
         });
+        if self.form != previous {
+            self.view.set_form(self.form.geometry());
+        }
+        self.view.set_light(self.finish);
+        self.view.set_color(self.tint);
+        self.view.set_spin_speed(self.speed);
     }
 
-    fn show(&mut self, ui: &mut egui::Ui, canvas: Rect, dt: f32) {
-        let response = ui
-            .interact(
-                canvas,
-                ui.make_persistent_id("prism-canvas"),
-                egui::Sense::drag(),
-            )
-            .on_hover_cursor(egui::CursorIcon::Grab);
-        if response.dragged() {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
-            let delta = response.drag_delta();
-            self.yaw += delta.x * 0.012;
-            self.pitch = (self.pitch + delta.y * 0.012).clamp(-1.45, 1.45);
-        } else if self.spinning && !response.is_pointer_button_down_on() {
-            self.yaw += dt * 0.62 * self.speed;
-        }
-        let moving_light = matches!(self.finish, PrismFinish::Sweep | PrismFinish::Wave);
-        if self.spinning || moving_light {
-            self.elapsed += dt;
-            ui.ctx().request_repaint_after_secs(1.0 / 60.0);
-        }
-        self.yaw = self.yaw.rem_euclid(std::f32::consts::TAU);
+    fn show(&mut self, ui: &mut egui::Ui, canvas: Rect) {
         let p = ui.painter_at(canvas);
         let unit = canvas.width().min(canvas.height());
         let center = canvas.center() - vec2(0.0, 8.0);
@@ -763,172 +722,14 @@ impl Prism {
                 Stroke::new(1.0, Color32::from_rgba_unmultiplied(112, 191, 224, 57)),
             ));
         }
-        self.paint_solid(&p, center, unit * 1.23);
+        self.view
+            .show_in(ui, canvas, ui.make_persistent_id("prism-canvas"));
         p.rect_stroke(
             canvas,
             0,
             Stroke::new(1.0, Color32::from_rgb(51, 66, 98)),
             StrokeKind::Inside,
         );
-    }
-
-    fn paint_solid(&self, p: &Painter, center: Pos2, focal: f32) {
-        let eye = [0.0, 0.0, 4.8];
-        let (sy, cy) = self.yaw.sin_cos();
-        let (sx, cx) = self.pitch.sin_cos();
-        let rotated = |[x, y, z]: Point3| {
-            let x1 = x * cy + z * sy;
-            let z1 = z * cy - x * sy;
-            [x1, y * cx - z1 * sx, y * sx + z1 * cx]
-        };
-        let key_position = if self.finish == PrismFinish::Sweep {
-            let (sin, cos) = (self.elapsed * 2.2).sin_cos();
-            [3.5 * cos, 2.1, 3.5 * sin + 1.2]
-        } else {
-            [-2.4, 3.1, 3.2]
-        };
-        let surface = |vertices: &[Point3], preset: Color32| {
-            let pigment = if self.tint == Self::DEFAULT_TINT {
-                preset
-            } else {
-                preset.lerp_to_gamma(self.tint, 0.78)
-            };
-            let midpoint = vertices.iter().fold([0.0; 3], |sum, &p| add(sum, p));
-            let midpoint = scale(midpoint, 1.0 / vertices.len() as f32);
-            let mut normal = normalized(cross(
-                sub(vertices[1], vertices[0]),
-                sub(vertices[2], vertices[0]),
-            ));
-            if dot(normal, midpoint) < 0.0 {
-                normal = scale(normal, -1.0);
-            }
-            if dot(normal, sub(eye, midpoint)) <= 0.0 {
-                return;
-            }
-            let mut mesh = Mesh::default();
-            let mut outline = Vec::with_capacity(vertices.len());
-            for &vertex in vertices {
-                let view = normalized(sub(eye, vertex));
-                let key = normalized(sub(key_position, vertex));
-                let side = normalized(sub([3.2, -0.5, 2.0], vertex));
-                let diffuse = dot(normal, key).max(0.0);
-                let reflected = dot(normal, normalized(add(key, view))).max(0.0).powi(12);
-                let rim = dot(normal, side).max(0.0);
-                let facing = dot(normal, view).max(0.0);
-                let fresnel = (1.0 - facing).powi(3);
-                let base = Color32::from_rgb(10, 20, 43)
-                    .lerp_to_gamma(pigment, 0.30 + diffuse * 0.54)
-                    .lerp_to_gamma(Color32::from_rgb(136, 119, 249), rim * 0.22)
-                    .lerp_to_gamma(
-                        Color32::from_rgb(220, 255, 247),
-                        (reflected * 0.84 + fresnel * 0.25).min(1.0),
-                    );
-                let color = match self.finish {
-                    PrismFinish::Pearl => {
-                        let phase = 7.0 * (1.0 - facing);
-                        let channel = |offset: f32| (142.0 + 108.0 * (phase + offset).cos()) as u8;
-                        base.lerp_to_gamma(
-                            Color32::from_rgb(channel(0.0), channel(2.1), channel(4.2)),
-                            0.56,
-                        )
-                    }
-                    PrismFinish::Neon => base.gamma_multiply(0.48),
-                    PrismFinish::Wave => {
-                        let height = (self.elapsed * 2.0).sin() * 1.08;
-                        let distance = (vertex[1] + 0.32 * vertex[0] - height) / 0.48;
-                        base.lerp_to_gamma(
-                            Color32::from_rgb(231, 250, 255),
-                            0.79 * (-distance * distance).exp(),
-                        )
-                    }
-                    PrismFinish::Studio | PrismFinish::Sweep => base,
-                };
-                let perspective = focal / (eye[2] - vertex[2]);
-                let point = center + vec2(vertex[0], -vertex[1]) * perspective;
-                mesh.colored_vertex(point, color);
-                outline.push(point);
-            }
-            for corner in 1..vertices.len() as u32 - 1 {
-                mesh.add_triangle(0, corner, corner + 1);
-            }
-            p.add(Shape::mesh(mesh));
-            let neon = self.finish == PrismFinish::Neon;
-            let edge = if neon {
-                Stroke::new(1.45, self.tint.lerp_to_gamma(Color32::WHITE, 0.30))
-            } else {
-                Stroke::new(1.0, Color32::from_rgba_unmultiplied(155, 236, 239, 102))
-            };
-            for (index, &point) in outline.iter().enumerate() {
-                let segment = [point, outline[(index + 1) % outline.len()]];
-                if neon {
-                    p.line_segment(segment, Stroke::new(5.5, self.tint.gamma_multiply(0.22)));
-                }
-                p.line_segment(segment, edge);
-            }
-        };
-        let pigments = [
-            Color32::from_rgb(39, 216, 208),
-            Color32::from_rgb(67, 116, 247),
-            Color32::from_rgb(142, 114, 245),
-            Color32::from_rgb(49, 162, 228),
-            Color32::from_rgb(87, 236, 205),
-            Color32::from_rgb(85, 94, 201),
-        ];
-        if self.form == PrismForm::Shard {
-            let vertices = [
-                [0.92, 0.92, 0.92],
-                [-0.92, -0.92, 0.92],
-                [-0.92, 0.92, -0.92],
-                [0.92, -0.92, -0.92],
-            ]
-            .map(rotated);
-            for (index, face) in [[0, 1, 2], [0, 1, 3], [0, 2, 3], [1, 2, 3]]
-                .into_iter()
-                .enumerate()
-            {
-                surface(&face.map(|corner| vertices[corner]), pigments[index]);
-            }
-            return;
-        }
-
-        let (sides, profile) = self.form.profile();
-        let rings: Vec<Vec<_>> = profile
-            .iter()
-            .map(|&(height, radius)| {
-                (0..sides)
-                    .map(|side| {
-                        let angle = side as f32 * std::f32::consts::TAU / sides as f32;
-                        let (sin, cos) = angle.sin_cos();
-                        rotated([cos * radius, height, sin * radius])
-                    })
-                    .collect()
-            })
-            .collect();
-        for (band, pair) in rings.windows(2).enumerate() {
-            for side in 0..sides {
-                let next = (side + 1) % sides;
-                let lower = &pair[0];
-                let upper = &pair[1];
-                let pigment = pigments[side % pigments.len()];
-                if profile[band].1 == 0.0 {
-                    surface(&[lower[side], upper[side], upper[next]], pigment);
-                } else if profile[band + 1].1 == 0.0 {
-                    surface(&[lower[side], upper[side], lower[next]], pigment);
-                } else {
-                    surface(
-                        &[lower[side], upper[side], upper[next], lower[next]],
-                        pigment,
-                    );
-                }
-            }
-        }
-        if profile[0].1 > 0.0 {
-            surface(&rings[0], Color32::from_rgb(43, 89, 155));
-        }
-        let top = profile.len() - 1;
-        if profile[top].1 > 0.0 {
-            surface(&rings[top], Color32::from_rgb(109, 226, 228));
-        }
     }
 }
 
@@ -941,36 +742,6 @@ fn halo(p: &Painter, center: Pos2, radius: Vec2, color: Color32) {
         mesh.add_triangle(0, i + 1, (i + 1) % 40 + 1);
     }
     p.add(Shape::mesh(mesh));
-}
-
-type Point3 = [f32; 3];
-
-fn add(a: Point3, b: Point3) -> Point3 {
-    [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
-}
-
-fn sub(a: Point3, b: Point3) -> Point3 {
-    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
-}
-
-fn scale(a: Point3, factor: f32) -> Point3 {
-    [a[0] * factor, a[1] * factor, a[2] * factor]
-}
-
-fn dot(a: Point3, b: Point3) -> f32 {
-    a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
-}
-
-fn cross(a: Point3, b: Point3) -> Point3 {
-    [
-        a[1] * b[2] - a[2] * b[1],
-        a[2] * b[0] - a[0] * b[2],
-        a[0] * b[1] - a[1] * b[0],
-    ]
-}
-
-fn normalized(a: Point3) -> Point3 {
-    scale(a, dot(a, a).max(f32::EPSILON).sqrt().recip())
 }
 
 #[cfg(test)]
@@ -1048,8 +819,24 @@ mod tests {
 
     #[test]
     fn scrolling_reveals_the_unity_launchers_beneath_the_album() {
+        for experiment in [
+            Experiment::Engraving,
+            Experiment::Prism,
+            Experiment::Magnetic,
+        ] {
+            assert_unity_follows_album(experiment);
+        }
+    }
+
+    fn assert_unity_follows_album(experiment: Experiment) {
         let ctx = egui::Context::default();
-        let mut animation = Animation::default();
+        let mut animation = Animation {
+            index: EXPERIMENTS
+                .iter()
+                .position(|&item| item == experiment)
+                .unwrap(),
+            ..Animation::default()
+        };
         let mut draw = |time, events| {
             let mut frame = ctx.run_ui(
                 egui::RawInput {
@@ -1075,9 +862,14 @@ mod tests {
                 .collect::<Vec<_>>()
         };
         let before = draw(0.0, vec![]);
-        assert!(before.iter().any(|text| text == "Живая гравюра"));
+        assert!(before.iter().any(|text| text == experiment.title()));
         assert!(before.iter().any(|text| text == "Проекты Unity ↓"));
-        assert!(!before.iter().any(|text| text == "Наклонный сад"));
+        assert!(
+            !before
+                .iter()
+                .any(|text| text == "Проекты Unity" || text == "Наклонный сад"),
+            "Unity overlaps the {experiment:?} album: {before:?}"
+        );
 
         draw(
             0.04,
@@ -1119,11 +911,11 @@ mod tests {
         assert_eq!(animation.index, 0);
         frame(&ctx, &mut animation, 0.06, arrow(Key::ArrowRight));
         assert_eq!(animation.index, 1);
-        let angle = animation.prism.yaw;
+        let angle = animation.prism.view.angles()[0];
         frame(&ctx, &mut animation, 0.08, vec![]);
-        assert!(animation.prism.yaw > angle);
-        animation.prism.spinning = false;
-        let angle = animation.prism.yaw;
+        assert!(animation.prism.view.angles()[0] > angle);
+        animation.prism.view.set_spinning(false);
+        let angle = animation.prism.view.angles()[0];
         let start = pos2(370.0, 160.0);
         frame(
             &ctx,
@@ -1139,17 +931,70 @@ mod tests {
                 },
             ],
         );
-        assert_eq!(animation.prism.yaw, angle);
+        assert_eq!(animation.prism.view.angles()[0], angle);
         frame(
             &ctx,
             &mut animation,
             0.12,
             vec![egui::Event::PointerMoved(start + vec2(46.0, -25.0))],
         );
-        assert!(animation.prism.yaw > angle + 0.4);
-        assert!(animation.prism.pitch < Prism::PITCH - 0.2);
+        assert!(animation.prism.view.angles()[0] > angle + 0.4);
+        assert!(animation.prism.view.angles()[1] < 0.28 - 0.2);
         frame(&ctx, &mut animation, 0.14, arrow(Key::ArrowLeft));
         assert_eq!(animation.index, 0);
+    }
+
+    #[test]
+    fn the_engraving_live_toggle_works_at_minimum_width() {
+        let ctx = egui::Context::default();
+        let mut animation = Animation::default();
+        let mut initial = ctx.run_ui(
+            egui::RawInput {
+                screen_rect: Some(Rect::from_min_size(Pos2::ZERO, vec2(700.0, 380.0))),
+                time: Some(0.0),
+                ..Default::default()
+            },
+            |ui| animation.show(ui, FontId::proportional(31.0)),
+        );
+        initial.textures_delta.clear();
+        let toggle = initial
+            .shapes
+            .iter()
+            .find_map(|item| match &item.shape {
+                Shape::Text(text)
+                    if text.galley.job.text == "Оживить"
+                        && item
+                            .clip_rect
+                            .contains(text.visual_bounding_rect().center()) =>
+                {
+                    Some(text.visual_bounding_rect().center())
+                }
+                _ => None,
+            })
+            .expect("live toggle is visible");
+        frame(
+            &ctx,
+            &mut animation,
+            0.04,
+            vec![egui::Event::PointerMoved(toggle)],
+        );
+        for (pressed, time) in [(true, 0.08), (false, 0.12)] {
+            frame(
+                &ctx,
+                &mut animation,
+                time,
+                vec![egui::Event::PointerButton {
+                    pos: toggle,
+                    button: egui::PointerButton::Primary,
+                    pressed,
+                    modifiers: egui::Modifiers::NONE,
+                }],
+            );
+        }
+        assert!(animation.engraving.settings.live);
+        let center = animation.engraving.view.lens_state().0;
+        frame(&ctx, &mut animation, 0.18, vec![egui::Event::PointerGone]);
+        assert!(center.distance(animation.engraving.view.lens_state().0) > 0.1);
     }
 
     #[test]
@@ -1164,8 +1009,8 @@ mod tests {
             0.02,
             vec![egui::Event::PointerMoved(start)],
         );
-        assert_eq!(animation.engraving.center, start);
-        let strength = animation.engraving.strength;
+        assert_eq!(animation.engraving.view.lens_state().0, start);
+        let strength = animation.engraving.view.lens_state().1;
         assert!(strength > 0.0);
         frame(
             &ctx,
@@ -1173,11 +1018,11 @@ mod tests {
             0.04,
             vec![egui::Event::PointerMoved(start + vec2(45.0, 0.0))],
         );
-        assert!(animation.engraving.center.x > start.x);
-        assert!(animation.engraving.center.x < start.x + 45.0);
-        assert!(animation.engraving.strength > strength);
-        let strength = animation.engraving.strength;
+        assert!(animation.engraving.view.lens_state().0.x > start.x);
+        assert!(animation.engraving.view.lens_state().0.x < start.x + 45.0);
+        assert!(animation.engraving.view.lens_state().1 > strength);
+        let strength = animation.engraving.view.lens_state().1;
         frame(&ctx, &mut animation, 0.06, vec![egui::Event::PointerGone]);
-        assert!(animation.engraving.strength < strength);
+        assert!(animation.engraving.view.lens_state().1 < strength);
     }
 }
