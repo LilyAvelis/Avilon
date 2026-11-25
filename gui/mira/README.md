@@ -33,7 +33,6 @@ cargo run --offline --locked -p avilon-mira-showcase --bin mira-atlas -- --style
 | Water Laboratory 1.11 | [Основной проект и точки входа](../../experiments/unity-water-lab) и [сборка с HDRP](../../experiments/unity-water-hdrp). Из корня Avilon запусти `./experiments/unity-water-hdrp/publish.ps1`, затем открой «Кинетика → Проекты Unity → Лаборатория воды». |
 | Godot Liquid Lab | [Ранний опыт с жидкостью](../../experiments/godot-liquid). Открой `project.godot` в Godot 4. |
 | Анимация | [Ролики Remotion и воспроизведение озвучки](../../experiments/infographic). Подготовленные кадры и WAV входят в ассеты атласа. |
-| Spectre Grove | [Описание сцены](../../experiments/unity-spectre-grove) охватывает прогулку от первого лица, посадки Spectre, куртины цветов и грибов, рост деревьев у стягивающих точек и лесное поселение. |
 | Луч Spectre 360° | [HTML-опыт и генератор](../../experiments/spectre-sweep). Открой **Анимация → HTML**. [Исследование продолжения](../../experiments/spectre-continuation) воспроизводит обход швов по расстоянию. |
 
 Для Water Laboratory нужна Unity **6000.3.29f1** и Windows с Direct3D 12. Владельцем опыта остаётся [Лея Кинетка](https://app.notion.com/p/42049fda329681baa351d1d1559e7bbd). [Хендофф](../../experiments/unity-water-lab/HANDOFF.md) и [патчи](../../experiments/unity-water-lab/CHANGELOG.md) описывают границы модели и историю решений.
